@@ -1,0 +1,41 @@
+Index,Type,Name,Group,Price,Rent Structure,Action
+0,Go,Go,N/A,0,N/A,N/A
+1,Property,Mediterranean Avenue,Brown,60,2;10;30;90;160;250,N/A
+2,CardManager,Community Chest,N/A,0,N/A,Community Chest
+3,Property,Baltic Avenue,Brown,60,4;20;60;180;320;450,N/A
+4,Tax,Income Tax,N/A,200,N/A,200
+5,Railroad,Reading Railroad,N/A,200,N/A,N/A
+6,Property,Oriental Avenue,Blue,100,6;30;90;270;400;550,N/A
+7,CardManager,Chance,N/A,0,N/A,Chance
+8,Property,Vermont Avenue,Blue,100,6;30;90;270;400;550,N/A
+9,Property,Connecticut Avenue,Blue,120,8;40;100;300;450;600,N/A
+10,Jail,Jail,N/A,0,N/A,N/A
+11,Property,St. Charles Place,Purple,140,10;50;150;450;625;750,N/A
+12,Utility,Electric Company,N/A,150,N/A,N/A
+13,Property,States Avenue,Purple,140,10;50;150;450;625;750,N/A
+14,Property,Virginia Avenue,Purple,160,12;60;180;500;700;900,N/A
+15,Railroad,Pennsylvania Railroad,N/A,200,N/A,N/A
+16,Property,St. James Place,Orange,180,14;70;200;550;750;950,N/A
+17,CardManager,Community Chest,N/A,0,N/A,Community Chest
+18,Property,Tennessee Avenue,Orange,180,14;70;200;550;750;950,N/A
+19,Property,New York Avenue,Orange,200,16;80;220;600;800;1000,N/A
+20,FreeParking,Free Parking,N/A,0,N/A,N/A
+21,Property,Kentucky Avenue,Red,220,18;90;250;700;875;1050,N/A
+22,CardManager,Chance,N/A,0,N/A,Chance
+23,Property,Indiana Avenue,Red,220,18;90;250;700;875;1050,N/A
+24,Property,Illinois Avenue,Red,240,20;100;300;750;925;1100,N/A
+25,Railroad,B&O Railroad,N/A,200,N/A,N/A
+26,Property,Atlantic Avenue,Yellow,260,22;110;330;800;975;1150,N/A
+27,Property,Ventnor Avenue,Yellow,260,22;110;330;800;975;1150,N/A
+28,Utility,Water Works,N/A,150,N/A,N/A
+29,Property,Marvin Gardens,Yellow,280,24;120;360;850;1050;1200,N/A
+30,GoToJail,Go To Jail,N/A,0,N/A,N/A
+31,Property,Pacific Avenue,Green,300,26;130;390;900;1100;1275,N/A
+32,Property,North Carolina Avenue,Green,300,26;130;390;900;1100;1275,N/A
+33,CardManager,Community Chest,N/A,0,N/A,Community Chest
+34,Property,Pennsylvania Avenue,Green,320,28;150;450;1000;1200;1400,N/A
+35,Railroad,Short Line,N/A,200,N/A,N/A
+36,CardManager,Chance,N/A,0,N/A,Chance
+37,Property,Park Place,Dark Blue,350,35;175;500;1100;1300;1500,N/A
+38,Tax,Luxury Tax,N/A,100,N/A,100
+39,Property,Boardwalk,Dark Blue,400,50;200;600;1400;1700;2000,N/A

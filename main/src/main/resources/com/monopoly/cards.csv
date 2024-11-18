@@ -1,0 +1,33 @@
+﻿Name,Payment,getOutOfJail,GoToJail,PerDevelopment,House,Hotel,AdvanceTo,Location,AdvanceBy,Steps,PerPlayer,PlayerAmount,Chance,CommunityChest,isNearest,NearestType
+You set aside time every week to hang out with your elderly neighbor – you’ve heard some amazing stories! COLLECT $100.,100,,,,,,,,,,,,,TRUE,,Null
+You organize a group to clean up your town’s footpaths. COLLECT $50.,50,,,,,,,,,,,,,TRUE,,Null
+You volunteered at a blood donation. There were free cookies! COLLECT $10.,10,,,,,,,,,,,,,TRUE,,Null
+You buy a few bags of cookies from that school bake sale. Yum! PAY $50.,-50,,,,,,,,,,,,,TRUE,,Null
+You rescue a puppy – and you feel rescued  too! GET OUT OF JAIL FREE. Keep this card until needed  traded  or sold.,0,TRUE,,,,,,,,,,,,TRUE,,Null
+You organize a street party so people on your road can get to know each other. COLLECT $10 FROM EACH PLAYER. Blasting music late at night?,0,,,,,,,,,,TRUE,10,,TRUE,,Null
+Your neighbors do not approve. GO TO JAIL. DO NOT PASS GO. DO NOT COLLECT $200.,0,,TRUE,,,,,,,,,,,TRUE,,Null
+You help your neighbor bring in her groceries. She makes you lunch to say thanks! COLLECT $20.,20,,,,,,,,,,,,,TRUE,,Null
+You help build a new school playground – then you get to test the slide! COLLECT $100.,100,,,,,,,,,,,,,TRUE,,Null
+You spend the day playing games with kids at a local children’s hospital. COLLECT $100.,100,,,,,,,,,,,,,TRUE,,Null
+You go to the local school’s car wash fundraiser – but you forget to close your windows! PAY $100.,-100,,,,,,,,,,,,,TRUE,,Null
+Just when you think you can’t go another step  you finish that foot race – and raise money for your local hospital! ADVANCE TO GO. COLLECT $200.,200,,,,,,TRUE,0,,,,,,TRUE,,Null
+You help your neighbors clean up their Gardens after a big storm. COLLECT $200.,200,,,,,,,,,,,,,TRUE,,Null
+Your fuzzy friends at the animal shelter will be thankful for your donation. PAY $50.,-50,,,,,,,,,,,,,TRUE,,Null
+You should have volunteered for that home improvement project – you would have learned valuable skills! FOR EACH HOUSE YOU OWN  PAY $40. FOR EACH HOTEL YOU OWN  PAY $115.,0,,,TRUE,-40,-115,,,,,,,,TRUE,,Null
+You organize a bake sale for your local school. COLLECT $25.,25,,,,,,,,,,,,,TRUE,,Null
+Advance to Boardwalk.,0,,,,,,TRUE,39,,,,,TRUE,,,Null
+Advance to Go (Collect $200).,0,,,,,,TRUE,0,,,,,TRUE,,,Null
+Advance to Illinois Avenue. If you pass Go  collect $200.,0,,,,,,TRUE,24,,,,,TRUE,,,Null
+Advance to St. Charles Place. If you pass Go  collect $200.,0,,,,,,TRUE,11,,,,,TRUE,,,Null
+Advance to the nearest Railroad. If unowned  you may buy it from the Bank. If owned  pay  owner twice the rental to which they are otherwise entitled.,0,,,,,,,,,,,,TRUE,,TRUE,RR
+Advance to the nearest Railroad. If unowned  you may buy it from the Bank. If owned  pay owner twice the rental to which they are otherwise entitled.,0,,,,,,,,,,,,TRUE,,TRUE,RR
+ Advance token to nearest Utility. If unowned  you may buy it from the Bank. If owned  throw dice and pay owner a total ten times amount thrown.,0,,,,,,,,,,,,TRUE,,TRUE,Utility
+Bank pays you dividend of $50.,50,,,,,,,,,,,,TRUE,,,Null
+Get Out of Jail Free.,0,TRUE,,,,,,,,,,,TRUE,,,Null
+Go Back 3 Spaces.,0,,,,,,,,TRUE,-3,,,TRUE,,,Null
+Go to Jail. Go directly to Jail  do not pass Go  do not collect $200.,0,,TRUE,,,,,,,,,,TRUE,,,Null
+Make general repairs on all your property. For each house pay $25. For each hotel pay $100.,0,,,TRUE,-25,-100,,,,,,,TRUE,,,Null
+Speeding fine $15.,-15,,,,,,,,,,,,TRUE,,,Null
+Take a trip to Reading Railroad. If you pass Go  collect $200.,0,,,,,,TRUE,5,,,,,TRUE,,,Null
+ You have been elected Chairman of the Board. Pay each player $50.,0,,,,,,,,,,TRUE,-50,TRUE,,,Null
+Your building loan matures. Collect $150,150,,,,,,,,,,,,TRUE,,,Null
