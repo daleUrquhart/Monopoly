@@ -7,7 +7,6 @@ import java.io.InputStream;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -17,6 +16,10 @@ import javafx.stage.Stage;
  * JavaFX App
  */
 public class App extends Application {
+
+    private static final double SCALE = 2.5;
+    private static final int SQ = 33;
+    private static final int MID = 24;
 
     private static Scene scene;
 
@@ -37,29 +40,57 @@ public class App extends Application {
         boardViewer.setPreserveRatio(true); 
         
         //Iterative tile build    
-        for(int i = 0; i < 11; i++) {
-            for(int j = 0; j < 11; j++) {
+        for(int col = 0; col < 11; col++) {
+            for(int row = 0; row < 11; row++) {
                 try {
-                    InputStream inputStream = new FileInputStream("../resources/com/monopoly/"+i+"_"+j+".png");
+                    InputStream inputStream = new FileInputStream("../resources/com/monopoly/"+col+"_"+row+".png");
                     Image image = new Image(inputStream);
                     ImageView imageView = new ImageView();  
 
                     imageView.setImage(image); 
 
-                    if(i == 0 || i == 10) {
-                        imageView.setFitWidth(i == j || Math.abs(i - j) == 10 ? 30 : 15);
-                        imageView.setFitHeight(25);
+                    if(col == 0 || col == 10) {
+                        if(row == 0 || row == 10) {
+                            imageView.setFitHeight(SCALE * SQ);
+                            imageView.setFitWidth(SCALE * SQ);
+                        }
+                        else {
+                            imageView.setFitHeight(SCALE * MID);
+                            imageView.setFitWidth(SCALE * SQ);
+                        }                        
                     }
                     else {
-                        imageView.setFitHeight(i == j || Math.abs(i - j) == 10 ? 30 : 15);
-                        imageView.setFitWidth(25);
+                        imageView.setFitHeight(SCALE * SQ);
+                        imageView.setFitWidth(SCALE * MID);
                     } 
                     
-                    pane.add(imageView, j, i);
+                    pane.add(imageView, col, row);
                 }
                 catch(FileNotFoundException e) {
-                    System.out.println("404:\t"+i+"_"+j+".png");
-                    pane.add(new Label("404"), j, i);
+                    InputStream inputStream = new FileInputStream("../resources/com/monopoly/"+10+"_"+10+".png");
+                    Image image = new Image(inputStream);
+                    ImageView imageView = new ImageView();
+                    System.out.println("404:\t"+col+"_"+row+".png");
+
+                    imageView.setImage(image);
+                    
+                    if(col == 0 || col == 10) {
+                        if(row == 0 || row == 10) {
+                            imageView.setFitHeight(SCALE * SQ);
+                            imageView.setFitWidth(SCALE * SQ);
+                            pane.add(imageView, col, row);
+                        }
+                        else {
+                            imageView.setFitHeight(SCALE * MID);
+                            imageView.setFitWidth(SCALE * SQ);
+                            pane.add(imageView, col, row);
+                        }                        
+                    }
+                    else if(row==0 || col==0 || row == 10 || col == 10) {
+                        imageView.setFitHeight(SCALE * SQ);
+                        imageView.setFitWidth(SCALE * MID);
+                        pane.add(imageView, col, row);
+                    }  
                 }
                 catch(Exception e) {
                     System.out.println("\n\nWTF?!");
@@ -67,7 +98,7 @@ public class App extends Application {
                 }
             }
         } 
-        pane.getChildren().add(boardViewer); 
+        //pane.getChildren().add(boardViewer); 
 
         scene = new Scene(pane, 600, 600);
       
