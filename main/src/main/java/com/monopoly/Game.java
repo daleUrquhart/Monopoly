@@ -85,21 +85,16 @@ final class Game {
         turnIndex = -1; 
         players = new ArrayList<> ();
         banker = new Banker();
-        
+        players = new ArrayList<>();
         chanceDeck = buildChanceDeck();
         cCDeck = buildCCDeck(); 
         System.out.println("\tDecks built succesfully..."); 
-        
-        setPlayers();
-        System.out.println("\tPlayers built succesfully");
 
         map = buildMap();
         System.out.println("\tMap built succesfully...");
 
         dice = new Dice(getPlayers());
         System.out.println("\tDice built succesfully...");
-         
-        System.out.println("Game created succefully");
     }
 
     /**
@@ -217,6 +212,14 @@ final class Game {
     } 
 
     /**
+     * Sets the player count
+     * @param count
+     */
+    void setPlayerCount(int count) {
+        playerCount = count;
+    }
+    
+    /**
      * Builds Community Chest Deck
      */
     ArrayList<Card> buildCCDeck() {
@@ -303,7 +306,7 @@ final class Game {
      * Handles taking the input to recieve the numebr of players to play in the game
      *
      * @return Number of players to play in the game
-     */
+     
     void setPlayers() {
         boolean valid = false;
 
@@ -342,7 +345,7 @@ final class Game {
             if(i==0) {players.get(i).flipCurrent();}
         } 
     }
-
+     */
     /**
      * Removes a player
      * @param p player to remove
