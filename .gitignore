@@ -19,3 +19,6 @@ buildNumber.properties
 #Dev Notes
 .notes
 
+main/src/main/java/com/monopoly/*.class
+main/src/main/resources/com/monopoly/*.xlsx
+main/src/main/resources/com/monopoly/properties-old.csv
