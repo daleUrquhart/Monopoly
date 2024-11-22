@@ -1,5 +1,6 @@
 /**
  * Contatins high level play functions for Monopoly
+ * @author Dale Urquhart
  */
 
 
@@ -35,12 +36,7 @@ final class Game {
     /**
      * Represents the banker
      */
-    private final Banker banker;
-
-    /**
-     * Represents the maximum number of players allowed to play in a game
-     */
-    private final int MAX_PLAYERS = 4;
+    private final Banker banker; 
 
     /**
      * Represents the number of players playing in the instance of the game
@@ -250,7 +246,7 @@ final class Game {
                 String group = values[3];
                 int price = Integer.parseInt(values[4]);
                 String rentStructure = values[5];
-                String action = values[6];
+                String action = values[6];  
     
                 switch (type) {
                     case "Go":
@@ -303,56 +299,16 @@ final class Game {
     }
 
     /**
-     * Handles taking the input to recieve the numebr of players to play in the game
-     *
-     * @return Number of players to play in the game
-     
-    void setPlayers() {
-        boolean valid = false;
-
-        System.out.print("Welcome, how many players will you have? ");
-
-        //Get player count
-        while(!valid) {
-            try {
-                playerCount = sc.nextInt();
-                if (playerCount > 1 && MAX_PLAYERS >= playerCount) {
-                    valid = true;
-                } else {
-                    System.out.print("Bad input, max player amount is 4 and yyou need at least 2, try again. ");
-                }
-            } catch (InputMismatchException e) {
-                System.out.print("That is not a valid input.. Try again. ");
-                sc.nextLine();
-            }
-        }
-        sc.nextLine();
-
-        players = new ArrayList<>();
-        String name;
-        ArrayList<String> names = new ArrayList<>();
-
-        //Get names
-        for(int i = 0; i < playerCount; i++) {
-            System.out.printf("Enter the name for player %d: ", i+1);
-            name = sc.nextLine();
-            while(names.contains(name)) {
-                System.out.print("Someone already has that name. Try again: ");
-                name = sc.nextLine();
-            }
-            names.add(name);
-            players.add(new Player(name)); 
-            if(i==0) {players.get(i).flipCurrent();}
-        } 
-    }
-     */
-    /**
      * Removes a player
      * @param p player to remove
      */
     void removePlayer(Player p) {
         getPlayers().remove(p);
         playerCount--;
+    }
+
+    void addPlayer(Player p) {
+        players.add(p); 
     }
 
     /**

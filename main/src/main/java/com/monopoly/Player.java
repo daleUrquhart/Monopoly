@@ -40,12 +40,7 @@ class Player extends Banker {
     /**
      * Number of turns the player has spent in jail consecutively
      */
-    private int jailTurns;
-
-    /**
-     * Player's bankruptcy status
-     */
-    private boolean bankrupt;
+    private int jailTurns; 
 
     /**
      * Amount of times doubles have been rolled in a row for one turn
@@ -56,14 +51,13 @@ class Player extends Banker {
      * Parametrized constructor for Player object
      * @param name Player's name
      */
-    Player(String name) {
+    Player(String name, BoardSpace location) {
         super(name, 1500);
-        this.location = null;
+        this.location = location;
         current = false;
         jailCardNum = 0;
         jail = false;
-        jailTurns = 0;
-        bankrupt = false;
+        jailTurns = 0; 
     }
 
     /**
@@ -164,22 +158,13 @@ class Player extends Banker {
         }
         flipJailed(); 
         return true;
-    }
-    
-    /**
-     * Checks if the player is bankrupt
-     * @return true for if the player is bankrupt
-     */
-    boolean isBankrupt() {
-        return bankrupt;
-    }
+    } 
 
     /**
      * Handles bankruptcy casued by anotehr player
      * @param bankrupter the player who caused the bankruptcy
      */
-    void bankrupted(Banker bankrupter, Game game) { 
-        bankrupt = true;
+    void bankrupted(Banker bankrupter, Game game) {  
 
         for(Property p : getProperties()) {
             bankrupter.addProperty(p);
@@ -206,8 +191,7 @@ class Player extends Banker {
     /**
      * Handles bankruptcy casued by the bank
      */
-    void bankrupted(Game game) {
-        bankrupt = true;
+    void bankrupted(Game game) { 
         game.removePlayer(this); 
         for(Property p : getProperties()) {
             game.handleAuction(p);

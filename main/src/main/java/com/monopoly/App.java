@@ -1,3 +1,7 @@
+/**
+ * GUI for monopoly application
+ * @author Dale Urquhart 
+ */
 package com.monopoly;
 
 import java.io.FileInputStream;
@@ -13,8 +17,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -22,39 +28,80 @@ import javafx.stage.Stage;
  */
 public class App extends Application {
 
+    /**
+     * Path to resources directory
+     */
     private static final String PATH = "../resources/com/monopoly/";
 
+    /**
+     * Scale for the board sizing
+     */
     private static final double SCALE = 2.5;
 
+    /**
+     * Larger length for board tile components
+     */
     private static final int SQ = 33;
 
+    /**
+     * Smaller length for board tile components
+     */
     private static final int MID = 24;
 
+    /**
+     * Scene for the ajvafx application
+     */
     private static Scene scene;
 
+    /**
+     * Pane for the javafx application
+     */
     private GridPane pane;
 
+    /**
+     * Game instance handling all backend game logic
+     */
     private Game game; 
 
+    /**
+     * ArrayList managing player instances and their GUI counterpart
+     */
     private ArrayList<Profile> profiles;
 
-    private TextField countField;
+    /**
+     * Primiary field for handling rudementary instruction
+     */
+    private TextField primaryField; 
 
-    private TextField nameField;
+    /**
+     * Primary label for handling rudementary instruction
+     */
+    private Label primaryLabel; 
 
-    private Label nameLabel;
+    /**
+     * Primary button for handling rudementary instruction
+     */
+    Button primaryButton;
 
-    private Label countLabel;
+     /**
+     * HBox for storing primary label, field and submit
+     */
+    private HBox primaryBox; 
 
-    private HBox nameBox;
+    /**
+     * ArrayList storing game pieces
+     */
+    private ArrayList<Image> pieces;
 
-    private HBox countBox;
-
+    /**
+     * Start method for the Monopoly GUI, ground zero
+     */
     @Override
     public void start(@SuppressWarnings("exports") Stage stage) throws IOException {
         System.out.println("START");
 
         profiles = new ArrayList<>();
+        pieces = new ArrayList<>();
         pane = new GridPane();  
         game = new Game();   
         System.out.println("Game created succefully");
@@ -127,28 +174,33 @@ public class App extends Application {
         } catch (FileNotFoundException e) {
             System.out.println("Aint no thang");
         }
+
+        //Game pieces
+        try {
+            for(int i = 0; i < 8; i++) {                                         
+                FileInputStream in = new FileInputStream(PATH+i+"_piece.png");
+                pieces.add(new Image(in));
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("What are you? Four years old? How are you still out here loosing the game pieces to the board game");
+        } catch (Exception e) {
+            System.out.println("Bad code idiot");
+            throw(e);
+        }
     }
     
     /**
-     * Handles taking the input to recieve the numebr of players to play in the game
-     *
-     * @return Number of players to play in the game
+     * Handles getting player data and creating Profiles
      */
     void buildPlayers() { 
-        countLabel = new Label("Enter the number of players you will have in your game: ");
-        nameLabel = new Label("Enter the name for payer 1: ");  
-        Button countButton = new Button("Press to submit");
-        Button nameButton = new Button("Press to submit");
-        countButton.setOnAction(e -> getCount());
-        nameButton.setOnAction(e -> getNames());
-        
-        nameField = new TextField();
-        countField = new TextField(); 
+        primaryLabel = new Label("Enter the number of players you will have in your game: "); 
+        primaryButton = new Button("Press to submit"); 
+        primaryButton.setOnAction(e -> getCount());
+        primaryField = new TextField(); 
 
-        countBox = new HBox(10, countLabel, countField, countButton); 
-        nameBox = new HBox(10, nameLabel, nameField, nameButton);
- 
-        pane.add(countBox, 11, 0); 
+        primaryBox = new HBox(10, primaryLabel, primaryField, primaryButton);  
+
+        pane.add(primaryBox, 11, 0); 
     }
 
     /**
@@ -161,58 +213,117 @@ public class App extends Application {
 
         while(!valid) {
             try {
-                count = Integer.parseInt(countField.getText());
+                count = Integer.parseInt(primaryField.getText());
                 if (count > 1 && MAX_PLAYERS >= count) {
                     valid = true;
                 } else {
-                    countLabel.setText("Bad input, max player amount is 4 and you need at least 2, try again. ");
-                    countField.clear();
+                    primaryLabel.setText("Bad input, max player amount is 4 and you need at least 2, try again. ");
+                    primaryField.clear();
                     return;
                 }
             } catch (NumberFormatException e) {
-                countLabel.setText("That is not a valid input.. Try again. "); 
-                countField.clear();
+                primaryLabel.setText("That is not a valid input.. Try again. "); 
+                primaryField.clear();
                 return;
             } catch (Exception e) {
                 System.out.println("General exception in getCount()"); 
             }
-            countField.clear();
-        } 
-        pane.getChildren().remove(countBox);
+            primaryField.clear();
+        }  
         game.setPlayerCount(count);
+
         //Get names
-        pane.add(nameBox, 11, 0); 
+        primaryLabel.setText("Enter the name for payer 1: ");  
+        primaryButton.setOnAction(e -> getNames()); 
     }
 
+    /**
+     * Gets player names
+     */
     void getNames() {
         String name;
-        ArrayList<String> names = new ArrayList<>();
-         
-        name = nameField.getText();
-        if(names.contains(name)) {
-            nameLabel.setText("Someone already has that name. Try again: ");
-            nameField.clear();
-            return;
-        }
-        else { 
-            nameLabel.setText("Enter the name for player "+(names.size()+2));
-            names.add(name);
-            game.getPlayers().add(new Player(name)); 
-            nameField.clear();
-        } 
+        ArrayList<String> names = new ArrayList<>(); 
+        Profile profile;
 
-        if(game.getPlayers().size() == game.getPlayerCount()) {
-            pane.getChildren().remove(nameBox);
-            for(Player p : game.getPlayers()) {
-                int i = profiles.size(); 
-                profiles.add(new Profile(p)); 
-                pane.add(profiles.get(i).main, i, 11); 
-            }
+        name = primaryField.getText();
+        //Bad input
+        if(names.contains(name)) {
+            primaryLabel.setText("Someone already has that name. Try again: ");
+            primaryField.clear(); 
+        }
+        //Good input, select a piece
+        else { 
+            primaryLabel.setText("Enter the name for the next player "); 
+            primaryField.clear();
+             
+            profile = new Profile(name, game.getGo());
+
+            names.add(name);
+            game.addPlayer(profile);  
+            profiles.add(profile);
+ 
+            getPiece(profile);  
         }
     }
 
+    /**
+     * Gets player's piece
+     */
+    void getPiece(Profile p) { 
+        HBox pieceBox1 = new HBox(), pieceBox2 = new HBox();
+        VBox pieceBoxes = new VBox(pieceBox1, pieceBox2);
+
+        pane.getChildren().remove(primaryBox);
+        pane.add(primaryLabel, 11, 0); 
+
+        primaryLabel.setText("Select a piece for "+p.getName()+":");   
+ 
+        for(int i = 0; i < pieces.size(); i++) {  
+            ImageView viewer = new ImageView();
+            viewer.setImage(pieces.get(i)); 
+            viewer.setFitHeight(MID*SCALE);
+            viewer.setFitWidth(MID*SCALE);
+            viewer.setOnMouseClicked((MouseEvent event) -> handleSelction(p, viewer, pieceBoxes) );
+            if(i < 4) {pieceBox1.getChildren().add(viewer); }
+            else      {pieceBox2.getChildren().add(viewer); }
+        }
+        pane.add(pieceBoxes, 12, 0, 4, 2); 
+    }
+
+    /**
+     * Handles piece selection
+     * @param p Profile that the piece selection is being assigned to
+     * @param viewer The image viewer selected for the profile
+     * @param pieceBoxes The conatiner storing the image options
+     */
+    void handleSelction(Profile p, ImageView viewer, VBox pieceBoxes) { 
+
+        p.setPiece(viewer); 
+        pieces.remove(viewer.getImage()); 
+
+        primaryLabel.setText("Enter the name for the next player ");
+        
+        pane.getChildren().remove(pieceBoxes);
+        pane.getChildren().remove(primaryLabel);
+        primaryBox.getChildren().addFirst(primaryLabel);
+        if(game.getPlayers().size() != game.getPlayerCount()) { pane.add(primaryBox, 11, 0); }
+        else                                                  { 
+            profiles.get(0).flipCurrent();
+            for(Profile profile : profiles) {
+                if(profile.getCurrent()) {
+                    pane.add(profile.getMain(), 11, 0, 1, GridPane.REMAINING); 
+                } else {
+                    pane.add(profile.getMain(), profiles.indexOf(profile), 11);
+                }
+            }
+        } 
+    }
+
+    /**
+     * Main method launching GUI
+     * @param args cmd line inputs
+     */
     public static void main(String[] args) { 
         launch();
-        //pane.add(profiles.get(i).main, 11, 0, 1, GridPane.REMAINING);  //code for primary player display
     }
 }
