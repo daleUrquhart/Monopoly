@@ -10,7 +10,12 @@ package com.monopoly;
 /**
  * Player object
  */
-class Player extends Banker {
+final class Player extends Banker {
+
+    /**
+     * Path to resources directory
+     */
+    private static final String PATH = "../resources/com/monopoly/";
 
     /**
      * Whether or not this player is the current one
@@ -48,12 +53,18 @@ class Player extends Banker {
     private int doubleCount;
 
     /**
+     * Profile represenitng the player instance
+     */
+    Profile profile;
+
+    /**
      * Parametrized constructor for Player object
      * @param name Player's name
      */
-    Player(String name, BoardSpace location) {
+    Player(String name, BoardSpace location, Profile profile) {
         super(name, 1500);
-        this.location = location;
+        this.profile = profile;
+        setLocation(location);
         current = false;
         jailCardNum = 0;
         jail = false;
@@ -115,11 +126,36 @@ class Player extends Banker {
     }
 
     /**
+     * Gets teh profile representing this layer instance
+     * @return Profile representing this player instance
+     */
+    Profile getProfile() {
+        return profile;
+    }
+
+    /**
      * Gets number of get out of jail free cards
      * @return number of get out of jail free cards
      */
     int getJailCardNum() {
         return jailCardNum;
+    }
+
+    /**
+     * Assigns the Player its profile
+     * @param profile
+     */
+    void setProfile(Profile profile) {
+        this.profile = profile;
+    }
+
+    /**
+     * Setter method for player's location by BoardSpace
+     * @param newLoc New location of player
+     */
+    void setLocation(BoardSpace location) {
+        this.location = location;
+        location.addOccupant(this);
     }
 
     /**
@@ -196,15 +232,6 @@ class Player extends Banker {
         for(Property p : getProperties()) {
             game.handleAuction(p);
         } 
-    }
-
-    /**
-     * Setter method for player's location by BoardSpace
-     * @param newLoc New location of player
-     */
-    void setLocation(BoardSpace newLoc) {
-        location = newLoc;
-        newLoc.addOccupant(this);
     }
 
     /**

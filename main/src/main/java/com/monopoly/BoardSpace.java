@@ -9,22 +9,35 @@ package com.monopoly;
 
 import java.util.ArrayList;
 
+import javafx.geometry.Pos;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
+
 class BoardSpace {
+
+    /**
+     * Offset coeffecient so pieces dont overlap eachotehr
+     */
+    private static final int SCALE = 20;
+    /**
+     * ImageView of the BoardSpace
+     */
+    private final StackPane tileStack;
 
     /**
      * Name of the space
      */
-    private String name;
+    private final String name;
 
     /**
      * ID of the space
      */
-    private int id;
+    private final int id;
 
     /**
      * Players on the space
      */
-    private ArrayList<Player> occupants;
+    private final ArrayList<Player> occupants;
 
     /**
      * All-args constructor
@@ -32,9 +45,10 @@ class BoardSpace {
      * @param id id of the space
      */
     BoardSpace(String name, int id) {
+        this.tileStack = new StackPane();
         this.name = name;
         this.id = id;
-        this.occupants = new ArrayList<Player>();
+        this.occupants = new ArrayList<>();
     }
 
     /**
@@ -61,12 +75,31 @@ class BoardSpace {
         return occupants;
     }
 
+    StackPane getStack() {
+        return tileStack;
+    }
+
+    /**
+     * Assigns the board space an image
+     * @param location_img image of the tile
+     */
+    void setTile(ImageView img) {
+        tileStack.getChildren().add(img); 
+    }
+    
     /**
      * Adds an occupant to the space
      * @param p player arrived
      */
-    void addOccupant(Player p) {
-        occupants.add(p);
+    void addOccupant(Player p) { 
+        occupants.add(p);  
+        int i = p.getProfile().getIndex();
+        Pos alignment = (i==1 ? Pos.TOP_LEFT : (i==2 ? Pos.TOP_RIGHT : (i==3 ? Pos.BOTTOM_LEFT : Pos.BOTTOM_RIGHT)));
+        ImageView cp = new ImageView(p.getProfile().getPiece().getImage());
+        StackPane.setAlignment(cp, alignment);
+        cp.setFitHeight(SCALE);
+        cp.setFitWidth(SCALE);
+        tileStack.getChildren().add(cp);  
     }
 
     /**
@@ -74,7 +107,8 @@ class BoardSpace {
      * @param occupant to be removed
      */
     void removeOccupant(Player p) {
-        occupants.remove(p);
+        occupants.remove(p); 
+        //tile.getChildren().remove(p.getProfile().get);    TODO
     } 
 
     /**

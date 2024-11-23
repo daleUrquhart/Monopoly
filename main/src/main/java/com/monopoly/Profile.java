@@ -7,12 +7,12 @@ import javafx.scene.layout.VBox;
 /**
  * Player profile display, showing stats of a player in the game
  */
-class Profile extends Player{
+final class Profile {
     
     /**
      * Hard coded scale of player image icons
      */
-    private final static int SQ = 20; 
+    private final static int SQ =  25; 
 
     /**
      * The profile's GUI component
@@ -25,13 +25,31 @@ class Profile extends Player{
     private ImageView piece;
 
     /**
+     * Player instance the profile is representing
+     */
+    private Player player; 
+
+    /**
+     * Order player was added
+     */
+    private int index;
+
+    /**
      * Primary constructor for Profile instances
      */ 
-    Profile(String name, BoardSpace location) {
-        super(name, location);   
-        piece = new ImageView();  
-        VBox box = new VBox(10, piece, new Label(toString()));
-        this.main = box;
+    Profile(ImageView piece, int index) {    
+        setPiece(piece);
+        this.index = index;
+        this.main = new VBox(10, this.piece); 
+    }
+
+    /**
+     * Sets the proile's player instance
+     * @param player Profile's player instance
+     */
+    void setPlayer(Player player) {
+        this.player= player;
+        this.main.getChildren().addLast(new Label(player.toString()));
     }
 
     /**
@@ -43,13 +61,36 @@ class Profile extends Player{
     } 
 
     /**
+     * Gets the idnex order of which the profile was created
+     * @return Order the pkayer was added
+     */
+    int getIndex() {
+        return index;
+    }
+    
+    /**
+     * Gets the player's playing piece
+     * @return The player's playing piece
+     */
+    ImageView getPiece() {
+        return piece;
+    }
+    
+    /**
+     * GEts the player instance the profile is representing
+     * @return Player instance the profile is representing
+     */
+    Player getPlayer() {
+        return  player;
+    }
+
+    /**
      * Sets the player's game piece
      * @param piece the player's game piece
      */
     void setPiece(ImageView piece) {
-        piece.setFitHeight(SQ);
-        piece.setFitWidth(SQ);
         this.piece = piece;
-        this.main.getChildren().addFirst(piece);
+        this.piece.setFitHeight(SQ);
+        this.piece.setFitWidth(SQ); 
     }
 }

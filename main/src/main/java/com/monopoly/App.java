@@ -104,7 +104,7 @@ public class App extends Application {
         pieces = new ArrayList<>();
         pane = new GridPane();  
         game = new Game();   
-        System.out.println("Game created succefully");
+        System.out.println("Game built succefully");
         
         buildTiles();
         System.out.println("Tiles built succesfully");
@@ -116,22 +116,26 @@ public class App extends Application {
 
         buildPlayers();
         System.out.println("Profiles built succesfully");
+
+
     } 
 
     /**
      * 
      */
     void buildTiles(){
-        //Iterative tile build    
-        for(int col = 0; col < 11; col++) {
-            for(int row = 0; row < 11; row++) {
-                try {
+        //Iterative tile build   
+        int count = -1; 
+        try {
+            for(int col = 0; col < 11; col++) {
+                for(int row = 0; row < 11; row++) { 
                     if(col!=0 && col!=10 && row!=0 && row!=10) {continue;}
 
                     InputStream inputStream = new FileInputStream(PATH+col+"_"+row+".png");
                     Image image = new Image(inputStream);
-                    ImageView imageView = new ImageView();  
+                    ImageView imageView = new ImageView();   
 
+                    count++;
                     imageView.setImage(image); 
 
                     if(col == 0 || col == 10) {
@@ -149,20 +153,13 @@ public class App extends Application {
                         imageView.setFitWidth(SCALE * MID);
                     } 
                     
-                    pane.add(imageView, col, row);
+                    game.getMap()[count].setTile(imageView);
+                    pane.add(game.getSpace(count).getStack(), col, row); 
                 }
-                catch(FileNotFoundException e) {
-                    System.out.println("There aint no "+col+", "+row+" file, idiot");
-                }
-                catch(Exception e) {
-                    System.out.println("\n\nWTF?!");
-                    throw(e);
-                }
-            }
-        } 
+            } 
 
-        //Center tile
-        try {
+            //Center tile
+        
             InputStream inputStream = new FileInputStream(PATH+"center_tile.png");
             Image image = new Image(inputStream);
             ImageView imageView = new ImageView();
@@ -171,18 +168,14 @@ public class App extends Application {
             imageView.setFitWidth(9*MID*SCALE);
 
             pane.add(imageView, 1, 1, 9, 9);
-        } catch (FileNotFoundException e) {
-            System.out.println("Aint no thang");
-        }
 
-        //Game pieces
-        try {
+            //Game pieces
             for(int i = 0; i < 8; i++) {                                         
                 FileInputStream in = new FileInputStream(PATH+i+"_piece.png");
                 pieces.add(new Image(in));
             }
         } catch (FileNotFoundException e) {
-            System.out.println("What are you? Four years old? How are you still out here loosing the game pieces to the board game");
+            System.out.println("Aint no thang");
         } catch (Exception e) {
             System.out.println("Bad code idiot");
             throw(e);
@@ -242,10 +235,10 @@ public class App extends Application {
      */
     void getNames() {
         String name;
-        ArrayList<String> names = new ArrayList<>(); 
-        Profile profile;
-
+        ArrayList<String> names = new ArrayList<>();
+        for(Player p : game.getPlayers()) { names.add(p.getName()); } 
         name = primaryField.getText();
+
         //Bad input
         if(names.contains(name)) {
             primaryLabel.setText("Someone already has that name. Try again: ");
@@ -253,37 +246,30 @@ public class App extends Application {
         }
         //Good input, select a piece
         else { 
-            primaryLabel.setText("Enter the name for the next player "); 
-            primaryField.clear();
-             
-            profile = new Profile(name, game.getGo());
-
-            names.add(name);
-            game.addPlayer(profile);  
-            profiles.add(profile);
- 
-            getPiece(profile);  
+            getPiece(name);  
         }
     }
 
     /**
      * Gets player's piece
+     * @param name Name fo the player
+     * @param names Names already selected
      */
-    void getPiece(Profile p) { 
+    void getPiece(String name) { 
         HBox pieceBox1 = new HBox(), pieceBox2 = new HBox();
         VBox pieceBoxes = new VBox(pieceBox1, pieceBox2);
 
         pane.getChildren().remove(primaryBox);
         pane.add(primaryLabel, 11, 0); 
 
-        primaryLabel.setText("Select a piece for "+p.getName()+":");   
+        primaryLabel.setText("Select a piece for "+name+":");   
  
         for(int i = 0; i < pieces.size(); i++) {  
             ImageView viewer = new ImageView();
             viewer.setImage(pieces.get(i)); 
             viewer.setFitHeight(MID*SCALE);
             viewer.setFitWidth(MID*SCALE);
-            viewer.setOnMouseClicked((MouseEvent event) -> handleSelction(p, viewer, pieceBoxes) );
+            viewer.setOnMouseClicked((MouseEvent event) -> handleSelction(name, viewer, pieceBoxes) );
             if(i < 4) {pieceBox1.getChildren().add(viewer); }
             else      {pieceBox2.getChildren().add(viewer); }
         }
@@ -292,13 +278,21 @@ public class App extends Application {
 
     /**
      * Handles piece selection
-     * @param p Profile that the piece selection is being assigned to
+     * @param name Name the player selected
+     * @param names Names selected so far
      * @param viewer The image viewer selected for the profile
      * @param pieceBoxes The conatiner storing the image options
      */
-    void handleSelction(Profile p, ImageView viewer, VBox pieceBoxes) { 
+    void handleSelction(String name, ImageView viewer, VBox pieceBoxes) { 
+        primaryLabel.setText("Enter the name for the next player "); 
+        primaryField.clear();
 
-        p.setPiece(viewer); 
+        Profile profile = new Profile(viewer, game.getPlayers().size()+1); 
+        Player player = new Player(name, game.getGo(), profile);
+        profile.setPlayer(player);
+        game.addPlayer(player);
+        profiles.add(profile); 
+
         pieces.remove(viewer.getImage()); 
 
         primaryLabel.setText("Enter the name for the next player ");
@@ -308,15 +302,17 @@ public class App extends Application {
         primaryBox.getChildren().addFirst(primaryLabel);
         if(game.getPlayers().size() != game.getPlayerCount()) { pane.add(primaryBox, 11, 0); }
         else                                                  { 
-            profiles.get(0).flipCurrent();
-            for(Profile profile : profiles) {
-                if(profile.getCurrent()) {
-                    pane.add(profile.getMain(), 11, 0, 1, GridPane.REMAINING); 
+            profiles.get(0).getPlayer().flipCurrent();
+            for(Profile p : profiles) {
+                if(p.getPlayer().getCurrent()) {
+                    pane.add(p.getMain(), 11, 0, 1, GridPane.REMAINING); 
                 } else {
-                    pane.add(profile.getMain(), profiles.indexOf(profile), 11);
+                    pane.add(p.getMain(), profiles.indexOf(p)*3, 11, 3, GridPane.REMAINING);
                 }
-            }
-        } 
+            } 
+        }      
+
+        //This marks the end of buildPlayers(), going back to start()
     }
 
     /**

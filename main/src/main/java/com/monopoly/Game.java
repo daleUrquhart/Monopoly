@@ -9,9 +9,9 @@ package com.monopoly;
 import java.io.BufferedReader; 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList; 
-import java.util.Scanner;
-import java.util.InputMismatchException; 
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner; 
 
 /**
  * High level handler class for Monopoly funcitons
@@ -219,14 +219,14 @@ final class Game {
      * Builds Community Chest Deck
      */
     ArrayList<Card> buildCCDeck() {
-        try{return Card.getCCDeck(PATH+"cards.csv");} catch(IOException e) {System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList<Card>();}
+        try{return Card.getCCDeck(PATH+"cards.csv");} catch(IOException e) {System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList<>();}
     }
 
     /**
      * Builds Chance Deck
      */
     ArrayList<Card> buildChanceDeck() {
-        try{return Card.getChanceDeck(PATH+"cards.csv");} catch(IOException e) {System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList<Card>();}
+        try{return Card.getChanceDeck(PATH+"cards.csv");} catch(IOException e) {System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList<>();}
     }
 
     /**
@@ -815,7 +815,7 @@ final class Game {
                 System.out.println("Breaking! " + current.getName() + " can not afford their taxes and goes bankrupt! "); 
             }
             //Player bankrupted, not able ot pay thier taxes
-            if(getPlayerCount() == 2) {removePlayer(current); return;}
+            if(getPlayerCount() == 2) {removePlayer(current);}
             else{current.bankrupted(this);}      
         } 
         
