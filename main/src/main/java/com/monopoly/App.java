@@ -126,35 +126,50 @@ public class App extends Application {
     void buildTiles(){
         //Iterative tile build   
         int count = -1; 
+        int col = 10, row = 10;
         try {
-            for(int col = 0; col < 11; col++) {
-                for(int row = 0; row < 11; row++) { 
-                    if(col!=0 && col!=10 && row!=0 && row!=10) {continue;}
+            for(int i = 0; i < 40; i++) {   
+                InputStream inputStream = new FileInputStream(PATH+col+"_"+row+".png");
+                Image image = new Image(inputStream);
+                ImageView imageView = new ImageView();   
 
-                    InputStream inputStream = new FileInputStream(PATH+col+"_"+row+".png");
-                    Image image = new Image(inputStream);
-                    ImageView imageView = new ImageView();   
+                count++;
+                imageView.setImage(image); 
 
-                    count++;
-                    imageView.setImage(image); 
-
-                    if(col == 0 || col == 10) {
-                        if(row == 0 || row == 10) {
-                            imageView.setFitHeight(SCALE * SQ);
-                            imageView.setFitWidth(SCALE * SQ);
-                        }
-                        else {
-                            imageView.setFitHeight(SCALE * MID);
-                            imageView.setFitWidth(SCALE * SQ);
-                        }                        
+                if(col == 0 || col == 10) {
+                    if(row == 0 || row == 10) {
+                        imageView.setFitHeight(SCALE * SQ);
+                        imageView.setFitWidth(SCALE * SQ);
                     }
                     else {
-                        imageView.setFitHeight(SCALE * SQ);
-                        imageView.setFitWidth(SCALE * MID);
-                    } 
-                    
-                    game.getMap()[count].setTile(imageView);
-                    pane.add(game.getSpace(count).getStack(), col, row); 
+                        imageView.setFitHeight(SCALE * MID);
+                        imageView.setFitWidth(SCALE * SQ);
+                    }                        
+                }
+                else {
+                    imageView.setFitHeight(SCALE * SQ);
+                    imageView.setFitWidth(SCALE * MID);
+                } 
+                
+                game.getMap()[count].setTile(imageView);
+                pane.add(game.getSpace(count).getStack(), col, row);  
+
+                if(col == 10) {
+                    if(row == 10){
+                        col--;
+                    } else{
+                        row++;
+                    }
+                } else if(col == 0) {
+                    if(row == 0) {
+                        col++;
+                    } else {
+                        row--;
+                    }
+                } else if(row == 0) {
+                    col++;
+                } else if(row == 10) {
+                    col--;
                 }
             } 
 
