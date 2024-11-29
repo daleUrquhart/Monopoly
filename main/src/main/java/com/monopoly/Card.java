@@ -17,12 +17,7 @@ class Card {
     /**
      * The name or description of the card, often used to indicate the card's action.
      */
-    private final String name;
-
-    /**
-     * The monetary effect of the card, where positive values represent money collected and negative values represent money paid.
-     */
-    private final int payment;
+    private final String name; 
 
     /**
      * Indicates whether the card is a "Get Out of Jail Free" card.
@@ -85,11 +80,6 @@ class Card {
     private final boolean chance;
 
     /**
-     * Indicates whether the card is part of the Community Chest deck.
-     */
-    private final boolean communityChest;
-
-    /**
      * Whetehr or not the player is advancing to the nearest property type specified
      */
     private final boolean nearest;
@@ -125,8 +115,7 @@ class Card {
     Card(String name, int payment, boolean getOutOfJail, boolean goToJail, boolean perDevelopment, int houseCost, int hotelCost,
                 boolean advanceTo, int location, boolean advanceBy, int steps, boolean perPlayer, int playerAmount,
                 boolean chance, boolean communityChest, boolean nearest, String nearestType) {
-        this.name = name;
-        this.payment = payment;
+        this.name = name; 
         this.getOutOfJail = getOutOfJail;
         this.goToJail = goToJail;
         this.perDevelopment = perDevelopment;
@@ -138,8 +127,7 @@ class Card {
         this.steps = steps;
         this.perPlayer = perPlayer;
         this.playerAmount = playerAmount;
-        this.chance = chance;
-        this.communityChest = communityChest; 
+        this.chance = chance; 
         this.nearest = nearest;
         this.nearestType = nearestType;
     }
@@ -152,16 +140,7 @@ class Card {
     String getName() {
         return name;
     }
-
-    /**
-     * Gets the payment amount associated with the card.
-     *
-     * @return the payment value; positive if money is collected, negative if money is paid
-     */
-    int getPayment() {
-        return payment;
-    }
-
+ 
     /**
      * Checks if the card is a "Get Out of Jail Free" card.
      *
@@ -268,16 +247,7 @@ class Card {
      */
     boolean isChance() {
         return chance;
-    }
-
-    /**
-     * Checks if the card belongs to the Community Chest deck.
-     *
-     * @return true if the card is a Community Chest card, false otherwise
-     */
-    boolean isCommunityChest() {
-        return communityChest;
-    }
+    } 
 
     /**
      * Gets whether or not the player is advancing to the nearest specified property type 
@@ -419,8 +389,8 @@ class Card {
                 + isNearest()+", "+getNearestType()+ ");";  
     }
      */
-    
-    @Override 
+     
+    @Override
     public String toString() {
         return getName();
     }
