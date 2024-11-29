@@ -10,12 +10,7 @@ package com.monopoly;
 /**
  * Player object
  */
-final class Player extends Banker {
-
-    /**
-     * Path to resources directory
-     */
-    private static final String PATH = "../resources/com/monopoly/";
+final class Player extends Entity { 
 
     /**
      * Whether or not this player is the current one
@@ -64,11 +59,11 @@ final class Player extends Banker {
     Player(String name, BoardSpace location, Profile profile) {
         super(name, 1500);
         this.profile = profile;
-        setLocation(location);
+        setInitialLocation(location);
         current = false;
         jailCardNum = 0;
         jail = false;
-        jailTurns = 0; 
+        jailTurns = 0;  
     }
 
     /**
@@ -139,21 +134,23 @@ final class Player extends Banker {
      */
     int getJailCardNum() {
         return jailCardNum;
-    }
-
-    /**
-     * Assigns the Player its profile
-     * @param profile
-     */
-    void setProfile(Profile profile) {
-        this.profile = profile;
-    }
+    } 
 
     /**
      * Setter method for player's location by BoardSpace
      * @param newLoc New location of player
      */
+    void setInitialLocation(BoardSpace location) { 
+        this.location = location;
+        location.addOccupant(this);
+    }
+    
+    /**
+     * Setter method for player's location by BoardSpace
+     * @param newLoc New location of player
+     */
     void setLocation(BoardSpace location) {
+        location.removeOccupant(this);
         this.location = location;
         location.addOccupant(this);
     }
@@ -162,7 +159,7 @@ final class Player extends Banker {
      * Flips current player value
      */
     void flipCurrent() {
-        current = !current;
+        current = !current; 
     }
 
     /**
@@ -183,16 +180,7 @@ final class Player extends Banker {
      * Liquidates assets to achieve a set balance
      * @param required balance
      */
-    boolean liquidate(int required, Game game) {
-        while(getBalance() < required) {
-            game.handleAdvancedTurn();
-            System.out.print("End attempt at liquidation to "+required+"? ");
-            if(game.boolInput()) {
-                game.removePlayer(this);
-                return false;
-            }
-        }
-        flipJailed(); 
+    boolean liquidate(int required, Game game) { 
         return true;
     } 
 
@@ -207,7 +195,7 @@ final class Player extends Banker {
             //If property is mortgaged give option to pay it off
             if(p.isMortgaged()) {
                 System.out.print(p.toString()+"\nIs mortgaged, would you like to unmortgage it now, or do so later? ");
-                if(game.boolInput()) {
+                if(game.boolInput("Bankruptcy", p.toString()+" is mortgaged.", "Would you like to unmortgage it now, for "+(int) ((double) p.getMortgageValue() * 1.1)+", or wait until later and only pay the current intrest owing of "+(int) ((double) p.getMortgageValue() * 0.1)+".")) {
                     p.unMortgage();
                 } else {
                     System.out.println("Property remains mortgaged, intrest only payment made. ");
@@ -246,7 +234,8 @@ final class Player extends Banker {
      * @param property the property to be sold
      * @return true for if the action was succesful
      */
-    void sell(Property property, Banker banker) { 
+    void sell(Property property) { 
+        Banker banker = Banker.getInstance();
         removeProperty(property);
         property.setOwner(banker);
         credit((int) (property.getPrice() / 2));
@@ -264,9 +253,8 @@ final class Player extends Banker {
     /**
      * Use a 'Get out of jail free card'
      */
-    void useJailCard() {
-        jailCardNum -= 1;
-        flipJailed();
+    void decrementJailCard() {
+        jailCardNum -= 1; 
     }
 
     /**
