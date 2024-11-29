@@ -12,15 +12,15 @@ final class Railroad extends Property{
     /**
      * Constructor for Railroad
      */
-    protected Railroad(String name, int id, int price, Banker owner, Banker banker) {
-        super(name, "Railroad", id, price, owner, banker);
+    Railroad(String name, int id, int price, Banker owner) {
+        super(name, "Railroad", id, price, owner);
     }
 
     /**
      * Gets the rent charged at the proerty
      */
     @Override
-    protected int getRent() {
+    int getRent() {
         double rent = 12.5;
         for (Property p : getOwner().getProperties()) {
             if (p instanceof Railroad) {
@@ -34,16 +34,18 @@ final class Railroad extends Property{
      * Charges rent to the player who lands on the property
      */
     @Override
-    protected void chargeRent(Player player) {
-        player.debit(getRent());
-        getOwner().credit(getRent());
+    void chargeRent(Player player) {
+        int rent = getRent();
+        player.debit(rent);
+        getOwner().credit(rent);
     }
 
     /**
      * Charges chance rent to the plauer who lands on the property
      */
-    protected void chargeChanceRent(Player player) {
-        player.debit(getRent() * 2);
-        getOwner().credit(getRent() * 2);
+    void chargeChanceRent(Player player) {
+        int rent = getRent() * 2;
+        player.debit(rent);
+        getOwner().credit(rent);
     }
 }

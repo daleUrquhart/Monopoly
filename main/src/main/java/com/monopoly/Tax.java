@@ -34,8 +34,8 @@ final class Tax extends BoardSpace {
      * @param p player being charged
      * @return true for if the charge was succesful
      */
-    void charge(Player p, Banker banker) { 
+    void charge(Player p) { 
         p.debit(getTax()); 
-        banker.credit(getTax());
+        Banker.getInstance().credit(getTax());
     }
 }

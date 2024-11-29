@@ -11,7 +11,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
-import java.util.Scanner; 
+import java.util.Optional; 
+
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
 /**
  * High level handler class for Monopoly funcitons
@@ -32,12 +42,7 @@ final class Game {
      * Collection of boardspaces in order
      */
     private BoardSpace[] map; 
-
-    /**
-     * Represents the banker
-     */
-    private final Banker banker; 
-
+ 
     /**
      * Represents the number of players playing in the instance of the game
      */
@@ -52,16 +57,11 @@ final class Game {
      * Index of Player in players for whose turn it is
      */
     private int turnIndex;
-
-    /**
-     * Game Scanner
-     */
-    private final Scanner sc;
-
+ 
     /**
      * Dice for the game (represents two dice rolled together)
      */
-    private final Dice dice;
+    private Dice dice;
 
     /**
      * Community Chest deck
@@ -74,23 +74,53 @@ final class Game {
     private final ArrayList<Card> chanceDeck;
 
     /**
+     * Manages the current player
+     */
+    private Player current; 
+
+    /**
+     * Primiary field for handling rudementary instruction
+     */
+    private final TextField genField; 
+
+    /**
+     * Primary label for handling rudementary instruction
+     */
+    private final Label genLabel;  
+
+     /**
+     * HBox for storing primary label, field and submit
+     */
+    private final HBox genBox; 
+
+    /**
+     * GamePane
+     */
+    private final GridPane gamePane;
+
+    /**
      * Game constructor
      */
-    Game(){
-        sc = new Scanner(System.in); 
-        turnIndex = -1; 
+    Game(GridPane gamePane){ 
+        turnIndex = 0; 
+        
+        genField = new TextField();
+        genLabel = new Label(); 
+        genBox = new HBox(genLabel);
+        this.gamePane = gamePane; 
+        this.gamePane.getChildren().add(genBox);
+
         players = new ArrayList<> ();
         banker = new Banker();
         players = new ArrayList<>();
-        chanceDeck = buildChanceDeck();
-        cCDeck = buildCCDeck(); 
+
+        ArrayList<Card>[] decks = buildDecks();
+        chanceDeck = decks[0];
+        cCDeck = decks[1]; 
         System.out.println("\tDecks built succesfully..."); 
 
         map = buildMap();
-        System.out.println("\tMap built succesfully...");
-
-        dice = new Dice(getPlayers());
-        System.out.println("\tDice built succesfully...");
+        System.out.println("\tMap built succesfully..."); 
     }
 
     /**
@@ -100,7 +130,7 @@ final class Game {
     BoardSpace getSpace(int i) {
         return map[i];
     }
-  
+   
     /**
      * Gets the board map
      * @return the board map
@@ -122,7 +152,7 @@ final class Game {
      */
     ArrayList<Card> getChanceDeck() {
         return chanceDeck;
-    }
+    } 
 
     /**
      * Gets the community chest deck
@@ -130,14 +160,7 @@ final class Game {
     ArrayList<Card> getCommunityChestDeck() {
         return cCDeck;
     }
-
-    /**
-     * Gets the banker
-     */
-    public Banker getBanker() {
-        return banker;
-    }
-
+ 
     /**
      * Gets array of all players
      * @return array of players
@@ -159,10 +182,7 @@ final class Game {
      * @return the current player
      */
     Player getCurrentPlayer() {
-        if(getTurnIndex() != -1) {
-            return getPlayer(getTurnIndex());
-        }
-        return null;
+        return current;
     }
 
     /**
@@ -195,8 +215,8 @@ final class Game {
      */
     Player getNextPlayer() {  
         getCurrentPlayer().flipCurrent();
-        incrementTurnIndex(); 
-        getCurrentPlayer().flipCurrent();
+        current = getPlayers().get(incrementTurnIndex());
+        current.flipCurrent();
         return getCurrentPlayer();
     }
 
@@ -206,6 +226,14 @@ final class Game {
     Dice getDice() {
         return dice;
     } 
+ 
+    /**
+     * Gets the jail instance
+     * @return the jail instance for the game
+     */
+    Jail getJail() {
+        return (Jail) getSpace(10);
+    }
 
     /**
      * Sets the player count
@@ -216,17 +244,33 @@ final class Game {
     }
     
     /**
-     * Builds Community Chest Deck
+     * Assigns the dice for the game
+     * @param dicePane Graphic representation for the dice
      */
-    ArrayList<Card> buildCCDeck() {
-        try{return Card.getCCDeck(PATH+"cards.csv");} catch(IOException e) {System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList<>();}
+    void setDice(Dice dice) {
+        this.dice = dice;
+        System.out.println("\tDice built succesfully...");
     }
 
     /**
+     * Sets the current player
+     */
+    void setCurrentPlayer(Player current) {
+        this.current = current;
+    }
+ 
+    /**
      * Builds Chance Deck
      */
-    ArrayList<Card> buildChanceDeck() {
-        try{return Card.getChanceDeck(PATH+"cards.csv");} catch(IOException e) {System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList<>();}
+    ArrayList<Card>[] buildDecks() {
+        ArrayList<Card>[] decks = new ArrayList[2];
+        try{
+            decks[0] = Card.getChanceDeck(PATH+"cards.csv");
+            decks [1] = Card.getCCDeck(PATH+"cards.csv");
+            return decks;
+        } catch(IOException e) {
+            System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList[2];
+        }
     }
 
     /**
@@ -236,10 +280,11 @@ final class Game {
         map = new BoardSpace[40]; 
         try (BufferedReader br = new BufferedReader(new FileReader(PATH+"properties.csv"))) { 
             String line;
+            Banker banker = Banker.getInstance();
+
             br.readLine(); // Skip the header line
             while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                //System.out.println(line);
+                String[] values = line.split(","); 
                 int index = Integer.parseInt(values[0]);
                 String type = values[1];
                 String name = values[2];
@@ -247,10 +292,10 @@ final class Game {
                 int price = Integer.parseInt(values[4]);
                 String rentStructure = values[5];
                 String action = values[6];  
-    
+                
                 switch (type) {
                     case "Go":
-                        map[index] = new Go(banker);
+                        map[index] = new Go("Go", 0);
                         for(Player p : getPlayers()) {
                             p.setLocation(map[index]);  
                         }
@@ -261,21 +306,21 @@ final class Game {
                         for (int i = 0; i < rents.length; i++) {
                             rentArray[i] = Integer.parseInt(rents[i]);
                         }
-                        map[index] = new Property(banker, banker, name, group, 0, index, rentArray[0], rentArray[1], rentArray[2],
+                        map[index] = new Property(banker, name, group, 0, index, rentArray[0], rentArray[1], rentArray[2],
                                 rentArray[3], rentArray[4], rentArray[5], price / 2, 50, price);
                         break;
                     case "Railroad":
-                        map[index] = new Railroad(name, index, price, banker, banker);
+                        map[index] = new Railroad(name, index, price, banker);
                         break;
                     case "Utility": 
-                        map[index] = new Utility(name, index, price, banker, banker, players);
+                        map[index] = new Utility(name, index, price, banker);
                         break;
                     case "Jail":
-                        map[index] = new Jail(players);
+                        map[index] = new Jail("Jail", 10);
                         break;
                     case "Tax":
                         int taxAmount = Integer.parseInt(action);
-                        map[index] = new Tax(name, index, taxAmount, banker);
+                        map[index] = new Tax(name, index, taxAmount);
                         break;
                     case "CardManager":
                         map[index] = new CardManager(name, index,
@@ -307,6 +352,10 @@ final class Game {
         playerCount--;
     }
 
+    /**
+     * Adds a player to ArrayList<Player> players
+     * @param p player to add to players
+     */
     void addPlayer(Player p) {
         players.add(p); 
     }
@@ -315,35 +364,85 @@ final class Game {
      * Decrements the turn index and will index the previously played player
      */
     void decrementTurnIndex() {
-        turnIndex -= 1;
-        if(getTurnIndex() == -1) {
-            turnIndex = getPlayerCount()-1;
-        }
+        turnIndex = getTurnIndex() == -1 ? getPlayerCount()-1 : turnIndex - 1;
     }
 
     /**
      * Increments the turn index
+     * @return the new turn index
      */
-    void incrementTurnIndex() {
-        turnIndex = getTurnIndex() == getPlayerCount() - 1 ? 0 : turnIndex + 1;
-
+    int incrementTurnIndex() {  
+        turnIndex = getTurnIndex() == (getPlayerCount() - 1) ? 0 : turnIndex + 1; 
+        return turnIndex;
     }
 
     /**
-     * Handles error checking on 'yes' or 'no' inputs
+     * Raises an alert and returns its input
+     * @param title Title for alert raised
+     * @param header Header for alert raised
+     * @param context Context for alert raised
      * @return true for if teh response is 'yes'
      */
-    boolean boolInput() {
-        String input=""; boolean badInput = true;
-        while(badInput) {
-            input = sc.nextLine();
-            if(input.equals("yes") || input.equals("no")) {
-                badInput = false;
+    public boolean boolInput(String title, String header, String context) {
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(context);
+        
+        // Show and wait for response
+        ButtonType result = alert.showAndWait().orElse(ButtonType.CANCEL);
+        
+        // Return true if 'OK' is clicked, false otherwise
+        return result == ButtonType.OK;
+    } 
+
+    /**
+     * Raises a dialog to input an integer and validates it against a given range.
+     * @param title Title for the input dialog
+     * @param header Header for the input dialog
+     * @param context Context for the input dialog
+     * @param min Minimum value (inclusive)
+     * @param max Maximum value (inclusive)
+     * @return The valid integer input from the user
+     */
+    public int intInput(String title, String header, String context, int min, int max) {
+        while (true) {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle(title);
+            dialog.setHeaderText(header);
+            dialog.setContentText(context + " (Range: " + min + " to " + max + ")");
+
+            Optional<String> result = dialog.showAndWait();
+
+            if (result.isPresent()) {
+                try {
+                    int value = Integer.parseInt(result.get());
+                    if (value >= min && value <= max) {
+                        return value;
+                    } else {
+                        showError("Invalid Input", "Value must be between " + min + " and " + max + ".");
+                    }
+                } catch (NumberFormatException e) {
+                    showError("Invalid Input", "Please enter a valid integer.");
+                }
             } else {
-                System.out.print("\tThe input may only be 'yes' or 'no': ");
+                // User cancelled the input
+                throw new RuntimeException("Input was cancelled");
             }
         }
-        return input.equals("yes");
+    }
+
+    /**
+     * Displays an error dialog with a given title and message.
+     * @param title Title for the error dialog
+     * @param message Message for the error dialog
+     */
+    private void showError(String title, String message) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     /**
@@ -363,8 +462,7 @@ final class Game {
 
             //Do you want to bid?
             if(bid < bidder.getBalance() && !bidder.equals(location.getOwner())) {
-                System.out.print(bidder.getName() + ", would you like to bid on " + location.getName() + "? The current bid is at $" + bid + ". ");
-                yes = boolInput();
+                yes = boolInput("Auction", bidder.getName()+", "+location.getName()+" is up for auction, would you like to make a bid?", "The current bid is at $"+bid);
             }
 
             //Yes?
@@ -374,7 +472,7 @@ final class Game {
                 //Validate integer input
                 while(!goodInt) {
                     try {
-                        attempt = sc.nextInt();
+                        attempt = intInput("Auction", bidder.getName()+", enter your bid for "+location.getName(), "Current bid is at "+bid, bid, bidder.getBalance());
                         if(attempt > bid && attempt <= bidder.getBalance()) {
                             bid = attempt;
                             highestBidder = bidder;
@@ -387,7 +485,6 @@ final class Game {
                     } catch (InputMismatchException  e) {
                         System.out.print("That is not a valid input.. ");
                     }
-                    sc.nextLine();
                 }
             } else {passedTurns += 1;} //Palyer did not bid
 
@@ -403,163 +500,76 @@ final class Game {
 
         //Property sold by bank at auction to a player
         if(highestBidder instanceof Player && !(location.getOwner() instanceof Player)) {
-            System.out.println("Bidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
+            genLabel.setText(genLabel.getText()+"\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
             highestBidder.buy(location, bid, this);
             return true;
         }
         //Player auctioning property off to other players
         else if(highestBidder instanceof Player && location.getOwner() instanceof Player) {
-            System.out.print("The highest bid was "+bid+" do you want to accept that amount, "+location.getOwner().getName()+"? ");
-            if(boolInput()) {
-                System.out.println("Bidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
+            if(boolInput("Auction", "The highest bid was "+bid, "Do you want to accept that amount, "+location.getOwner().getName()+", or keep the property? ")) {
+                genLabel.setText(genLabel.getText()+"\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
                 highestBidder.buy(location, bid, this);
                 return true;
             } else {
-                System.out.println("Owner disatisfied with acution, recants property. ");
+                genLabel.setText(genLabel.getText()+"\nOwner disatisfied with acution, recants property. ");
                 return false;
             }
         }
         //Property stays with the bank
         else {
-            System.out.println("No bids made, "+location.getName()+" stays with "+location.getOwner().getName()+". ");
+            genLabel.setText(genLabel.getText()+"\nNo bids made, "+location.getName()+" stays with "+location.getOwner().getName()+". ");
             return false;
         }
     } 
 
     /**
-     * Handles dice rolling and player movement logic
-     * @param current player
+     * Handles dice rolling and player movement logic 
      */
-    boolean handleRoll() {
-        Player current = getCurrentPlayer();
-        int roll = getDice().roll();
-        int newSpace = roll + current.getLocation().getId();
-        boolean doubles = false;
+    void handleRoll() {
+        try {  
+            // Make roll and assign the new location
+            int roll = getDice().roll(current);  
+            int newSpace = roll + current.getLocation().getId();
+            genLabel.setText("You rolled a "+roll+"!");
 
-        System.out.println("You rolled a "+roll+". ");
-
-        if(newSpace >= getMap().length) {
-            newSpace -= getMap().length;
-
-            getGo().reward(getPlayer(getTurnIndex()));
-            System.out.println("Congratulations, you made it another trip around the sun! Here is $200. ");
-        }
-        current.setLocation(getSpace(newSpace));
-
-        //Got doubles
-        if (getDice().doubles()) {
-            //If third doubles in a row, go to jail
-            if (current.getDoubleCount() == 2) {
-                System.out.println("That was your third doubles, go to jail! ");
-                current.flipJailed();
-                current.resetDoubleCount();
+            // Passed Go
+            if(newSpace >= getMap().length) {
+                genLabel.setText(genLabel.getText()+"\nYou passed Go! Here is $200.");
+                newSpace -= getMap().length; 
+                getGo().reward(getCurrentPlayer()); 
             }
-            //If not third doubles in a row, roll again
-            else {
-                System.out.println("You rolled doubles, you get to roll again after your turn! ");
-                doubles = true;
-                current.incrementDoubleCount();
-            }
-        }
-        //Did not get doubles
-        else {
-            current.resetDoubleCount();
-        }
-        return doubles;
-    }
 
-    /**
-     * Handles special logic for when player is in jail
-     * @param current player (in jail)
-     * @return true for if player decided to try to roll for doubles and was succesful and now a proeprty needs to be handled
-     */
-    boolean handleJail() {
-        boolean doubles = false, badInt = true, hasChoice = true;
-        String message;
-        Player current = getCurrentPlayer(); 
-        int choice = 2, roll;
+            // Assign new location
+            current.setLocation(getSpace(newSpace));
 
-        //Get choice
-        if (current.ownsJailCard()) {
-            message = current.canAfford(getBail()) ? "You are in jail, would you like to pay your fine, try your luck at doubles, or use a get out of jail free card (1, 2, or 3)? " : "You can not afford bail, you must try to roll for doubles, or use your get out of jail free card (2, or 3). ";
-        } else {
-            message = current.canAfford(getBail()) ? "You are in jail, would you like to pay your fine, try your luck at doubles (1, or 2)? " : "You can not afford bail, you must try to roll for doubles. ";
-            hasChoice = current.canAfford(getBail());
-        }
-        System.out.print(message);
-
-        //Validate choice
-        while (badInt && hasChoice) {
-            try {
-                choice = sc.nextInt();
-                if (choice == 1 || choice == 2 || (choice == 3 && current.ownsJailCard())) {
-                    badInt = false;
-                } else {
-                    System.out.print("\tNot an option, try again.. ");
+            // Got doubles
+            if (getDice().doubles()) {
+                // If third doubles in a row, go to jail
+                if (current.getDoubleCount() == 2) {
+                    genLabel.setText(genLabel.getText()+"\nThat was your third doubles, go to jail! ");
+                    current.flipJailed();
+                    current.resetDoubleCount();
                 }
-            } catch (InputMismatchException e) {
-                System.out.print("\tNot an option, try again. ");
-            }
-            sc.nextLine();
-        } 
-
-        //Execute choice
-        switch (choice) {
-            case 1:
-                current.debit(getBail());
-                current.flipJailed();
-                break;
-
-            case 2:
-                roll = getDice().roll();
-                doubles = getDice().doubles();
-
-                if (doubles) {
-                    current.flipJailed(); 
-                    current.setLocation(getSpace(10 + roll));
-                    System.out.println("You rolled doubles (" + roll + ")! You are freed from jail. ");
-                } 
-                
+                // If not third doubles in a row, roll again
                 else {
-                    System.out.println("You failed to roll doubles. ");
-                    //Maximum amount of jail turns reached, force bail payment
-                    if (current.getJailedTurns() == 2) {
-                        System.out.print("Maximum jail turns reached. ");
-                        if(current.ownsJailCard()) {
-                            System.out.println("Get out of jail free card used. ");
-                            current.useJailCard();
-                        }
-                        //If player can afford bail, roll and move
-                        else if (current.canAfford(getBail())) {
-                            System.out.println("Bail charged. ");
-                            current.debit(getBail());
-                            current.flipJailed();
-                        }
-                        //If player can not afford bail, bankrupted by the bank
-                        else {
-                            //Net worth is greater or equal to than bail
-                            if (current.getNetWorth() >= getBail()) {
-                                System.out.println("You must forefit assets to pay bail. ");
-                                if(current.liquidate(getBail(), this)) {current.debit(getBail()); break;}
-                            }
-                            System.out.println("You have been bankrupted by not being able to afford your bail. ");
-                            if(getPlayerCount() == 2) {removePlayer(current); break;}
-                            current.bankrupted(this);
-                        }
-                    }
-                    //Max amount of jail turns not reaached
-                    else {
-                        current.incrementJailTurns();
-                    }
+                    genLabel.setText(genLabel.getText()+"\nYou rolled doubles, you get to roll again after your turn! ");
+                    current.incrementDoubleCount();
+                    decrementTurnIndex();
                 }
+            }
 
-                break;
+            // Handle the logic for landing on the new location 
+            handleNewLocation();   
 
-            case 3:
-                System.out.println("Get out of jail free card used. ");
-                current.useJailCard(); 
+            // Did not get doubles
+            if(!getDice().doubles()) {
+                current.resetDoubleCount(); 
+                current = getNextPlayer(); 
+            } 
+
+        } catch(NullPointerException e) {
+            System.err.println("Null pointer exception in Game.handleRoll()\n"+e);
         } 
-        return doubles;
     }
 
     /**
@@ -584,10 +594,10 @@ final class Game {
         System.out.print("): ");
 
         //Get name
-        name = sc.nextLine();
+        name = stringInput();
         while(!names.contains(name)) {
             System.out.print("Name not found, try again: ");
-            name = sc.nextLine();
+            name = stringInput();
         }
 
         //Get Player
@@ -603,7 +613,7 @@ final class Game {
             System.out.print(property.getOwner().getName() + ", what do you offer? (offer -1 to quit negotiations) ");
             while(!goodInt) {
                 try {
-                    offer = sc.nextInt();
+                    offer = getInt();
                     if(offer == -1) {
                         negotiating = false;
                         break;
@@ -618,12 +628,10 @@ final class Game {
                     System.out.print("Not a number, try again: ");
                 }
             }
-            goodInt = false;
-            sc.nextLine();
+            goodInt = false; 
 
-            //Accepted?
-            System.out.print(player.getName()+", do you accept? ");
-            if(boolInput()) { 
+            //Accepted? 
+            if(boolInput("Private Sale", "The current offer on "+property.getName()+" is "+offer, "Do you accept this price?")) { 
                 player.buy(property, offer, this);
                 return true;
             } else {
@@ -634,102 +642,29 @@ final class Game {
     }
 
     /**
-     * Handles advanced turn action (player wishes to have info displayd), and prompts purchase of proeprty
-     */
-    void handleAdvancedTurn() {
-        Player player = getCurrentPlayer();
-        boolean result;
-        System.out.println(player+"\n");
-
-        System.out.println("Would you like to view your advanced turn options? ");
-        result = boolInput();
-        if(!result) {return;}
-
-        //Advanced turn logic
-        //For property owned
-        for(Property p : player.getProperties()) {
-            System.out.print("Would you like to take an action on "+p.getName()+"? ");
-            if(!boolInput()) {continue;}
-
-            //Un-Mortgage the property?
-            if(p.isMortgaged()) {
-                if(player.canAfford(p.getMortgageValue())) {
-                    System.out.print("Would you like to un-mortgage "+p.getName()+" for $"+p.getMortgageValue()+"? ");
-                    if(boolInput()) {
-                        p.unMortgage();
-                    }
-                }
-            }
-            //Mortgage the property?
-            else {
-                System.out.print("Would you like to mortgage "+p.getName()+" for $"+p.getMortgageValue()+"? ");
-                if(boolInput()) {p.mortgage();continue;}
-            }
-            //Sell to another player? Auction or private sale?
-            System.out.print("Would you like to sell this property to another player? ");
-            if(boolInput()) {
-                System.out.print("Would you like to auction the property (private sale otherwise)? ");
-                if(boolInput()) {
-                    //Auction
-                    if(handleAuction(p)) {continue;}
-                }
-                else {
-                    //Private Sale
-                    if(handlePrivateSale(p)) {continue;}
-                }
-            }
-            //Sell property to bank?
-            if(!p.setDeveloped() && !p.isMortgaged()) {
-                System.out.print("Sell "+p.getName()+" to the bank? ");
-                if(boolInput()) {
-                    player.sell(p, getBanker());
-                }
-            }
-            //sell developments back to the bank, the else works because it can not have developments and be mortgaged
-            else {
-                if(p.developed()) {
-                    System.out.print("You have "+(p.hasHotel() ? "a hotel" : p.getHouses()+" houses")+", would you like to sell a development for $"+p.getDevelopmentCost()+"? ");
-                    if(boolInput()) {
-                        p.sellDevelopment();
-                    }
-                }
-            }
-            //Buy development?
-            if(player.ownsSetFor(p) && !p.hasHotel() && player.canAfford(p.getDevelopmentCost())) {
-                System.out.print("Would you like to buy a "+(p.getHouses() == 4 ? "hotel" : "house")+" for "+p.getName()+"? ");
-                if(boolInput()) {
-                    p.buyDevelopment();
-                }
-            }
-        }
-        System.out.println("");
-    }
-
-    /**
      * Handles the turn of landing on an unwoned property
      */
-    void handleUnownedProperty() {
-        Player current = getCurrentPlayer();
+    void handleUnownedProperty() { 
         Property property = (Property) current.getLocation();
         
         // If player can afford the property
         if(current.canAfford(property.getPrice())) {
-            System.out.print("This property is not owned yet! would you like to buy it? "); 
-            if (boolInput()) {
+            genLabel.setText(genLabel.getText()+"\nThis property is not owned yet! would you like to buy it? "); 
+            if (boolInput("Property", property.getName()+" is not owned yet.", "Would you like to buy it?")) {
                 current.buy(property); 
             }
         }
         // If the player has the net worth to afford the property
         else if(current.getNetWorth() >= property.getPrice()) {
-            System.out.print("This property is not owned yet! In order to purchase this property though, you will have to sell off assets. Would you like to buy it? ");
-            if (boolInput()) {
+            genLabel.setText(genLabel.getText()+"\nThis property is not owned yet! In order to purchase this property though, you will have to sell off assets. Would you like to buy it? ");
+            if (boolInput("Property", property.getName()+" is not owned yet.", "Would you like to buy it?")) {
                 current.liquidate(property.getPrice(), this);
                 current.buy(property); 
             }
         }
         // The player can not afford the property
         else {
-            System.out.println("This property is not owned yet! You can not afford this property though, and it will be going up for auction. ");
+            genLabel.setText(genLabel.getText()+"\nThis property is not owned yet! You can not afford this property though, and it will be going up for auction. ");
         }
         if(!current.equals(property.getOwner())) {handleAuction(property);}
     }
@@ -737,27 +672,26 @@ final class Game {
     /**
      * Handles game logic for landing on an owned property
      */
-    void handleOwnedProperty() {
-        Player current = getCurrentPlayer();
+    void handleOwnedProperty() { 
         Property property = (Property) current.getLocation();
         Banker owner = property.getOwner();
         
         if (!owner.equals(current)) {
             // Can not afford the rent
             if (!current.canAfford(property.getRent())) {
-                System.out.println("Breaking! " + current.getName() + " bankrupted by: " + owner.getName() + "! ");
+                genLabel.setText(genLabel.getText()+"\nBreaking! " + current.getName() + " bankrupted by: " + owner.getName() + "! ");
                 if(getPlayerCount() == 2) {removePlayer(current); return;}
                 current.bankrupted(owner, this);
             }
             // Can afford the rent
             else {
                 property.chargeRent(current);
-                System.out.println(current.getName() + " landed on " + owner.getName() + "'s property, the rent owed to them is $" + property.getRent() + ".");
+                genLabel.setText(genLabel.getText()+"\n"+current.getName() + " landed on " + owner.getName() + "'s property, the rent owed to them is $" + property.getRent() + ".");
             }
         }
         // If we own the property, do nothing
         else {
-            System.out.println("You are at " + property.getName() + ", and you own it already.");
+            genLabel.setText(genLabel.getText()+"\nYou are at " + property.getName() + ", and you own it already.");
         }
 
         
@@ -766,39 +700,37 @@ final class Game {
     /**
      * Handles game logic for landing on any of the special squares
      */
-    void handleSpecialSquare() { 
-        Player current = getCurrentPlayer();
+    void handleSpecialSquare() {  
         BoardSpace location = current.getLocation(); 
         Tax tax;
         CardManager cm;
         Go go;
-        Jail jail;
-        GoToJail gtj;
+        Jail jail = getJail(); 
         Card card; 
 
         if (location instanceof Go) {
             go = (Go) location;
             go.reward(current);
-            System.out.println("Congratulations, " + current.getName() + "! You made it to Go! ");
+            genLabel.setText(genLabel.getText()+"\nCongratulations, " + current.getName() + "! You made it to Go! ");
         } 
         
         else if (location instanceof Jail) {
             jail = (Jail) location;
             if (jail.hasJailed()) {
-                System.out.println("Welcome to the visitation center, say hello to your friends. ");
+                genLabel.setText(genLabel.getText()+"\nWelcome to the visitation center, say hello to your friends. ");
             } else {
-                System.out.println("Welcome to the visitation center. ");
+                genLabel.setText(genLabel.getText()+"\nWelcome to the visitation center. ");
             }
         } 
         
         else if (location instanceof FreeParking) {
-            System.out.println("Welcome to free parking, take a breather. ");
+            genLabel.setText(genLabel.getText()+"\nWelcome to free parking, take a breather. ");
         } 
         
-        else if (location instanceof GoToJail) {
-            gtj = (GoToJail) location;
-            gtj.jail(current);
-            System.out.println("Go directly to Jail, do not pass Go, do not collect $200! ");
+        else if (location instanceof GoToJail) {  
+            jail.addPlayer(current);
+            current.setLocation(getJail()); 
+            genLabel.setText(genLabel.getText()+"\nGo directly to Jail, do not pass Go, do not collect $200! ");
             if(getDice().doubles()) {incrementTurnIndex();} //Do not go again from doubles if landed on go to jail, re-increment turn index
         } 
         
@@ -807,12 +739,12 @@ final class Game {
             //If player can afford the tax pay it
             if(current.canAfford(tax.getTax())) {
                 tax.charge(current);
-                System.out.println("Uh oh! You have been charged "+tax.getName()+"! You were charged $" + tax.getTax() + "!");
+                genLabel.setText(genLabel.getText()+"\nUh oh! You have been charged "+tax.getName()+"! You were charged $" + tax.getTax() + "!");
             } 
             //Liquidate asssets to pay for taxes
             else if(!current.canAfford(tax.getTax()) && current.getNetWorth() >= tax.getTax()) {
                 current.liquidate(tax.getTax(), this);
-                System.out.println("Breaking! " + current.getName() + " can not afford their taxes and goes bankrupt! "); 
+                genLabel.setText(genLabel.getText()+"\nBreaking! " + current.getName() + " can not afford their taxes and goes bankrupt! "); 
             }
             //Player bankrupted, not able ot pay thier taxes
             if(getPlayerCount() == 2) {removePlayer(current);}
@@ -822,7 +754,7 @@ final class Game {
         else if (location instanceof CardManager) {
             cm = (CardManager) location;
             card = cm.draw(this);
-            System.out.println("Welcome to the "+location.getName()+" square! Your card draw is: \n" + card);
+            genLabel.setText(genLabel.getText()+"\nWelcome to the "+location.getName()+" square! Your card draw is: \n" + card);
             CardManager.handle(card, this); 
         }
     } 
@@ -832,7 +764,7 @@ final class Game {
      */
     void handleProperty() { 
         Property location = (Property) getCurrentPlayer().getLocation();
-        System.out.println("You landed on " + location.getName() + "!"); 
+        genLabel.setText(genLabel.getText()+"\nYou landed on " + location.getName() + "!"); 
 
         // If property is not owned, then buy or auction
         if (!(location.getOwner() instanceof Player)) {
@@ -857,51 +789,144 @@ final class Game {
         // If location is a special square
         else {
             handleSpecialSquare();
+        } 
+    } 
+
+    boolean handleJail() {
+        boolean freedByDoubles = false;
+        String message;
+        int choice;
+
+        // Determine choices
+        if (current.ownsJailCard()) {
+            message = current.canAfford(getBail())
+                ? "You are in jail. Choose an option:\n1. Pay fine\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card"
+                : "You are in jail. Choose an option:\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card";
+        } else {
+            message = current.canAfford(getBail())
+                ? "You are in jail. Choose an option:\n1. Pay fine\n2. Try for doubles"
+                : "You are in jail. You must try for doubles.";
+        }
+
+        // Display choice dialog
+        ChoiceDialog<Integer> dialog = new ChoiceDialog<>(2, validChoices(current));
+        dialog.setTitle("Jail Decision");
+        dialog.setHeaderText("You are in jail");
+        dialog.setContentText(message);
+
+        Optional<Integer> result = dialog.showAndWait();
+
+        // No action taken
+        if (result.isEmpty()) {
+            handleJail();
+        }
+
+        choice = result.get();
+
+        // Execute choice
+        switch (choice) {
+            case 1: {
+                current.debit(getBail());
+                getJail().removePlayer(current);
+            }
+            case 2: {
+                int roll = getDice().roll(current);
+                freedByDoubles = getDice().doubles();
+
+                if (freedByDoubles) {
+                    getJail().removePlayer(current);
+                    current.setLocation(getSpace(10 + roll));
+                    handleNewLocation();
+                    showAlert("Success", "You rolled doubles (" + roll + ")! You are freed from jail.");
+                } else {
+                    handleFailedRoll();
+                }
+            }
+            case 3: {
+                current.decrementJailCard();
+                getJail().removePlayer(current);
+                showAlert("Success", "You used a 'Get Out of Jail Free' card!");
+            }
+        }
+
+        return freedByDoubles;
+    }
+
+    //Below are handleJail() helper methods 
+    
+    /**
+     * Gets the valid choice based on the player's current situation for handleJail
+     * @param current Player in jail
+     * @return ArrayList of choices available to the player
+     */
+    private ArrayList<Integer> validChoices(Player current) {
+        ArrayList<Integer> choices = new ArrayList<>();
+        if (current.canAfford(getBail())) choices.add(1);
+        choices.add(2);
+        if (current.ownsJailCard()) choices.add(3);
+        return choices;
+    }
+
+    /**
+     * Shows alert 
+     * @param title
+     * @param message
+     */
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Handles the lgoc for when a player attempts and fails to roll doubles
+     */
+    private void handleFailedRoll() {
+        current.incrementJailTurns();
+        if (current.getJailedTurns() == 3) {
+            if (current.ownsJailCard()) {
+                current.decrementJailCard();
+                getJail().removePlayer(current);
+                showAlert("Max Jail Turns", "You used a 'Get Out of Jail Free' card!");
+            } else if (current.canAfford(getBail())) {
+                current.debit(getBail());
+                getJail().removePlayer(current);
+                showAlert("Max Jail Turns", "Bail paid and you are released.");
+            } else {
+                handleBankruptcy();
+            }
+        } else {
+            showAlert("Failed Roll", "You failed to roll doubles. Jail turn incremented.");
         }
     }
 
     /**
-     * Handles player's turn from dice roll to incrementing to the next turn
-     * Main game loop
+     * Handles bankruptcy caused by jail
      */
-    void gameLoop() {
-        Player current;
-        boolean winner = false, doubles = false; 
-
-        while (!winner) {
-            //Assign current player
-            if(getPlayerCount() == 1) {winner = true; continue; }
-            if(doubles) {
-                doubles = false;
-                decrementTurnIndex();
+    private void handleBankruptcy() {
+        if (current.getNetWorth() >= getBail()) {
+            if (current.liquidate(getBail(), this)) {
+                current.debit(getBail());
+                getJail().removePlayer(current);
+            } else {
+                bankruptPlayer();
             }
-            current = getNextPlayer();  
-            if(current == null) {winner = true; continue; } 
-            System.out.println("\n"+current.getName()+"'s Turn ");
-            
-            /*
-            //See stats?
-            System.out.print("\n" + current.getName() + "'s turn. Would you like to view your player's data? ");
-            if(boolInput()){handleAdvancedTurn();}
-            */
-
-            //Player is in jail
-            if (current.inJail()) {
-                //If they did not roll doubles
-                if (!handleJail()) {
-                    continue;
-                }
-            }
-            //Player is not in jail
-            else {
-                doubles = handleRoll();
-                if(current.inJail()) { // Rolled their third double in a row and got sent to jail, kills turn
-                    continue;
-                } 
-            }
- 
-            handleNewLocation();
+        } else {
+            bankruptPlayer();
         }
-        System.out.println(getCurrentPlayer().getName()+" wins the game!");
+    }
+
+    /**
+     * Bankrupts player
+     */
+    private void bankruptPlayer() {
+        showAlert("Bankruptcy", "You cannot afford bail and have been bankrupted.");
+        if (getPlayerCount() == 2) {
+            removePlayer(current);
+        } else {
+            current.bankrupted(this);
+        }
     }
 }

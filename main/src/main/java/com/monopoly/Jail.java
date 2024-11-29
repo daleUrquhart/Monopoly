@@ -10,14 +10,32 @@ public class Jail extends BoardSpace{
     /**
      * Games's players 
      */
-    ArrayList<Player> players;
+    ArrayList<Player> jailedPlayers;
 
     /**
      * Constructor for Just Visiting
     */
-    Jail(ArrayList<Player> players) {
-        super("Jail", 10);
-        this.players = players;
+    Jail(String name, int id) {
+        super(name, id);
+        this.jailedPlayers = new ArrayList<>();
+    }
+
+    /**
+     * Adds a player to the jailedPlayers
+     * @param p player to ad to jailedPlayers
+     */
+    void addPlayer(Player p) {
+        jailedPlayers.add(p);
+        p.flipJailed();
+    }
+
+    /**
+     * Removes a player form jailed players
+     * @param p player to remove from jailed players
+     */
+    void removePlayer(Player p) {
+        jailedPlayers.remove(p);
+        p.flipJailed(); 
     }
 
     /**
@@ -25,10 +43,6 @@ public class Jail extends BoardSpace{
      * @return true for if there is a player in jail
      */
     boolean hasJailed() {
-        for(Player p : players) {
-            if(p.inJail()) {
-                return true;
-            }
-        } return false;
+        return jailedPlayers.isEmpty();
     } 
 }

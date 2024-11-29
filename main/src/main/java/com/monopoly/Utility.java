@@ -12,8 +12,8 @@ final class Utility extends Property{
     /**
      * Constructor for Utility
      */
-    Utility(String name, int id, int price, Banker owner, Banker banker) {
-        super(name, "Utility", id, price, owner, banker); 
+    Utility(String name, int id, int price, Entity owner) {
+        super(name, "Utility", id, price, owner); 
     } 
 
     /**

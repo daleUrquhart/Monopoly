@@ -149,7 +149,7 @@ class Card {
      *
      * @return the name of the card
      */
-    public String getName() {
+    String getName() {
         return name;
     }
 
@@ -158,7 +158,7 @@ class Card {
      *
      * @return the payment value; positive if money is collected, negative if money is paid
      */
-    public int getPayment() {
+    int getPayment() {
         return payment;
     }
 
@@ -167,7 +167,7 @@ class Card {
      *
      * @return true if it's a "Get Out of Jail Free" card, false otherwise
      */
-    public boolean isGetOutOfJail() {
+    boolean isGetOutOfJail() {
         return getOutOfJail;
     }
 
@@ -176,7 +176,7 @@ class Card {
      *
      * @return true if the card sends the player to jail, false otherwise
      */
-    public boolean isGoToJail() {
+    boolean isGoToJail() {
         return goToJail;
     }
 
@@ -185,7 +185,7 @@ class Card {
      *
      * @return true if the card is per development, false otherwise
      */
-    public boolean isPerDevelopment() {
+    boolean isPerDevelopment() {
         return perDevelopment;
     }
 
@@ -194,7 +194,7 @@ class Card {
      *
      * @return the cost per house, or 0 if not applicable
      */
-    public int getHouseCost() {
+    int getHouseCost() {
         return houseCost;
     }
 
@@ -203,7 +203,7 @@ class Card {
      *
      * @return the cost per hotel, or 0 if not applicable
      */
-    public int getHotelCost() {
+    int getHotelCost() {
         return hotelCost;
     }
 
@@ -212,7 +212,7 @@ class Card {
      *
      * @return true if the card involves advancing to a location, false otherwise
      */
-    public boolean isAdvanceTo() {
+    boolean isAdvanceTo() {
         return advanceTo;
     }
 
@@ -221,7 +221,7 @@ class Card {
      *
      * @return the location object, or null if not applicable
      */
-    public int getLocation() {
+    int getLocation() {
         return location;
     }
 
@@ -230,7 +230,7 @@ class Card {
      *
      * @return true if the card involves advancing by steps, false otherwise
      */
-    public boolean isAdvanceBy() {
+    boolean isAdvanceBy() {
         return advanceBy;
     }
 
@@ -239,7 +239,7 @@ class Card {
      *
      * @return the number of steps, or 0 if not applicable
      */
-    public int getSteps() {
+    int getSteps() {
         return steps;
     }
 
@@ -248,7 +248,7 @@ class Card {
      *
      * @return true if the card involves per-player interaction, false otherwise
      */
-    public boolean isPerPlayer() {
+    boolean isPerPlayer() {
         return perPlayer;
     }
 
@@ -257,7 +257,7 @@ class Card {
      *
      * @return the amount per player, or 0 if not applicable
      */
-    public int getPlayerAmount() {
+    int getPlayerAmount() {
         return playerAmount;
     }
 
@@ -266,7 +266,7 @@ class Card {
      *
      * @return true if the card is a Chance card, false otherwise
      */
-    public boolean isChance() {
+    boolean isChance() {
         return chance;
     }
 
@@ -275,7 +275,7 @@ class Card {
      *
      * @return true if the card is a Community Chest card, false otherwise
      */
-    public boolean isCommunityChest() {
+    boolean isCommunityChest() {
         return communityChest;
     }
 
@@ -302,7 +302,7 @@ class Card {
      * @return A list of Card objects loaded from the CSV file.
      * @throws IOException If there is an error reading the CSV file.
      */
-    public static ArrayList<Card> getCCDeck(String filePath) throws IOException { 
+    static ArrayList<Card> getCCDeck(String filePath) throws IOException { 
         ArrayList<Card> ccDeck = new ArrayList<>();  
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
@@ -356,7 +356,7 @@ class Card {
      * @return A list of Card objects loaded from the CSV file.
      * @throws IOException If there is an error reading the CSV file.
      */
-    public static ArrayList<Card> getChanceDeck(String filePath) throws IOException {
+    static ArrayList<Card> getChanceDeck(String filePath) throws IOException {
         ArrayList<Card> chanceDeck = new ArrayList<>();  
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {

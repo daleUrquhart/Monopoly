@@ -15,20 +15,13 @@ final class Go extends BoardSpace {
     /**
      * Reward for reaching Go
      */
-    private static final int REWARD = 200;
-
-    /**
-     * Banker 
-     */
-    Banker banker;
+    private static final int REWARD = 200; 
 
     /**
      * Go Constructor
-     * @param banker the banker
      */
-    Go(Banker banker) {
-        super("Go", 0);
-        this.banker = banker;
+    Go(String name, int id) {
+        super(name, id); 
     }
 
     /**
@@ -44,6 +37,6 @@ final class Go extends BoardSpace {
      */
     void reward(Player p) {
         p.credit(getReward());
-        banker.debit(getReward());
+        Banker.getInstance().debit(getReward());
     }
 }

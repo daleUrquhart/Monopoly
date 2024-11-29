@@ -54,14 +54,7 @@ final class CardManager extends BoardSpace {
         int index = rand.nextInt(deck.size()); 
         Card drawn = deck.get(index); deck.remove(index);
         return drawn;
-    }
-
-    /**
-     * Gets the deck  
-     */
-    ArrayList<Card> getDeck() {
-        return deck;
-    }
+    } 
     
     /**
      * Handles the actions described on drawn
@@ -71,6 +64,7 @@ final class CardManager extends BoardSpace {
         Player p = game.getCurrentPlayer();
         Utility utility;
         Railroad rr;
+        Banker banker = Banker.getInstance();
 
         if(card.isGetOutOfJail())   {p.addJailCard();}
         if(card.isGoToJail())       {p.flipJailed();}
@@ -93,7 +87,7 @@ final class CardManager extends BoardSpace {
         if(card.isPerDevelopment()) {
             total = p.getTotalHouses() * card.getHouseCost() + p.getTotalHotels() * card.getHotelCost();
             p.debit(total);
-            game.getBanker().credit(total);
+            banker.credit(total);
         }
         
         if(card.isNearest())        {
@@ -106,8 +100,8 @@ final class CardManager extends BoardSpace {
                 //Handle new location
                 p.setLocation(game.getSpace(space));
                 rr = (Railroad) p.getLocation();
-                if(!rr.getOwner().equals(game.getBanker()) && !rr.getOwner().equals(p)) {rr.chargeChanceRent(p); } 
-                else if(rr.getOwner().equals(game.getBanker()))                         {game.handleUnownedProperty();}
+                if(!rr.getOwner().equals(banker) && !rr.getOwner().equals(p)) {rr.chargeChanceRent(p); } 
+                else if(rr.getOwner().equals(banker))                         {game.handleUnownedProperty();}
                 else{game.handleOwnedProperty();}
                 
             }
@@ -118,8 +112,8 @@ final class CardManager extends BoardSpace {
                 utility = p.getLocation().getId() > 11 && p.getLocation().getId() < 28 ? (Utility) game.getSpace(28) : (Utility) game.getSpace(12);
                 p.setLocation(utility);
                 //Handle new locaiton
-                if(!utility.getOwner().equals(game.getBanker()) && !utility.getOwner().equals(p)) {utility.chargeChanceRent(p);} 
-                else if(utility.getOwner().equals(game.getBanker()))                              {game.handleUnownedProperty();}
+                if(!utility.getOwner().equals(banker) && !utility.getOwner().equals(p)) {utility.chargeChanceRent(p);} 
+                else if(utility.getOwner().equals(banker))                              {game.handleUnownedProperty();}
                 else{game.handleOwnedProperty();}
             }
         }

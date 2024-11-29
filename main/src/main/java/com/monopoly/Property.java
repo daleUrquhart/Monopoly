@@ -70,19 +70,13 @@ class Property extends BoardSpace{
     /**
      * The owner of the property
      */
-    private Banker owner;
-
-    /**
-     * Banker
-     */
-    private Banker banker;
+    private Entity owner; 
 
     /**
      * Default constructor for a properrty object
      */
-    protected Property(Banker owner, Banker banker, String name, String type, int setSize, int id, int rent, int h1, int h2, int h3,int h4, int hotel, int mortgage, int developmentCost, int price) {
+    Property(Entity owner, String name, String type, int setSize, int id, int rent, int h1, int h2, int h3,int h4, int hotel, int mortgage, int developmentCost, int price) {
         super(name, id);
-        this.banker = banker;
         this.price = price;
         setOwner(owner);
         this.type = type;
@@ -91,34 +85,24 @@ class Property extends BoardSpace{
         houseRent = new int[]{h1, h2, h3, h4};
         hotelRent = hotel;
         mortgageValue = mortgage;
-        this.developmentCost = developmentCost;
-        
-        this.banker = banker;
+        this.developmentCost = developmentCost; 
     }
 
     /**
      * Utility and Railroad constructor
      */
-    protected Property(String name, String type, int id, int price, Banker owner, Banker banker) {
+    Property(String name, String type, int id, int price, Entity owner) {
         super(name, id);
         setOwner(owner);
         this.type = type;
-        this.price = price;
-        this.banker = banker;
-    }
-
-    /**
-     * Gets the banker
-     */
-    protected Banker getBanker() {
-        return banker;
-    }
+        this.price = price; 
+    } 
 
     /**
      * Gets the size of the set of properties of the same type
      * @return the size of the set of properties of the same type
      */
-    protected int getSetSize() {
+    int getSetSize() {
         return setSize;
     }
 
@@ -126,7 +110,7 @@ class Property extends BoardSpace{
      * Gets the mortgage value for the property
      * @return Mortgage value of the property
      */
-    protected int getMortgageValue() {
+    int getMortgageValue() {
         return mortgageValue;
     }
 
@@ -135,7 +119,7 @@ class Property extends BoardSpace{
      * Also adds the property to the new owner's list of properties
      * @param newOwner the new owner of the property
      */
-    final protected void setOwner(Banker newOwner) {
+    final void setOwner(Entity newOwner) {
         if(getOwner() != null) {getOwner().adjustNetWorth((int) (getPrice() / -2));}
         
         owner = newOwner;
@@ -147,46 +131,28 @@ class Property extends BoardSpace{
      * Mortgages the property. A mortgaged property does not count to net worth
      * @return true for if the action was succesful
      */
-    protected void mortgage() { 
+    void mortgage() { 
         getOwner().adjustNetWorth((int) (getPrice() / 2) * -1);
         getOwner().credit(getMortgageValue());
-        getBanker().debit(getMortgageValue());
+        Banker.getInstance().debit(getMortgageValue());
         mortgaged = true;
     }
 
     /**
      * Unmortgages a property
      */
-    protected void unMortgage() {
+    void unMortgage() {
         getOwner().adjustNetWorth((int) (getPrice() / 2));
         getOwner().debit((int) (getMortgageValue() * 1.1));
-        getBanker().credit((int) (getMortgageValue() * 1.1));
+        Banker.getInstance().credit((int) (getMortgageValue() * 1.1));
         mortgaged = false;
-    }
-
-    /**
-     * Whetehr or not any of the properties in the set is developed
-     * @return true for if any of the preperties of the set are evelpped
-     */
-    protected boolean setDeveloped() {
-        //If we own the set and on the set is a developed property, then set flag to true.
-        boolean flag = false;
-        if(getOwner().ownsSetFor(this)) {
-            for(Property p : getOwner().getProperties()) {
-                if(p.developed() && p.getType().equals(getType())) {
-                    flag = true;
-                    break;
-                }
-            }
-        }
-        return flag;
-    }
+    } 
 
     /**
      * Gets the type of the property set
      * @return the type of the property set
      */
-    protected String getType() {
+    String getType() {
         return type;
     }
 
@@ -194,7 +160,7 @@ class Property extends BoardSpace{
      * Gets the owner of the property
      * @return the owner of the property
      */
-    protected Banker getOwner() {
+    Entity getOwner() {
         return owner;
     }
 
@@ -210,7 +176,7 @@ class Property extends BoardSpace{
      * Whether or not the property has houses or hotel (is developed)
      * @return true for if there is developments on the property
      */
-    protected boolean developed() {
+    boolean developed() {
         return getHouses()!=0 || hasHotel();
     }
 
@@ -218,7 +184,7 @@ class Property extends BoardSpace{
      * Checks if the property is mortaged or not
      * @return true if the property is mortgaged
      */
-    protected boolean isMortgaged() {
+    boolean isMortgaged() {
         return mortgaged;
     }
 
@@ -226,7 +192,7 @@ class Property extends BoardSpace{
      * Gets the status of whetehr or not a hotel is on the property
      * @return true for if a hotel exists
      */
-    protected boolean hasHotel() {
+    boolean hasHotel() {
         return hotel;
     }
 
@@ -234,17 +200,17 @@ class Property extends BoardSpace{
      * Gets the number of hosues on the proerty
      * @return the number of houses on the property
      */
-    protected int getHouses() {
+    int getHouses() {
         return houses;
     }
 
     /**
      * Buys a development on the property
      */
-    protected void buyDevelopment() {
+    void buyDevelopment() {
         getOwner().adjustNetWorth((int) (getDevelopmentCost() / 2)); 
         getOwner().debit(getDevelopmentCost());
-        getBanker().credit(getDevelopmentCost());
+        Banker.getInstance().credit(getDevelopmentCost());
 
         if(getHouses() == 4) {
             hotel = true;
@@ -257,8 +223,8 @@ class Property extends BoardSpace{
     /**
      * Sells a development on the property
      */
-    protected void sellDevelopment() {
-        getBanker().debit((int) (getDevelopmentCost() / 2));
+    void sellDevelopment() {
+        Banker.getInstance().debit((int) (getDevelopmentCost() / 2));
         getOwner().credit((int) (getDevelopmentCost() / 2));
         getOwner().adjustNetWorth((int) (getDevelopmentCost() / -2));
 
@@ -274,7 +240,7 @@ class Property extends BoardSpace{
      * Gets the price of the property to buy
      * @return the price of the property
      */
-    protected int getPrice() {
+    int getPrice() {
         return price;
     }
 
@@ -282,7 +248,7 @@ class Property extends BoardSpace{
      * Charges rent to the player who lands on the property
      * No rent charged when banker owns the property
      */
-    protected void chargeRent(Player renter) {
+    void chargeRent(Player renter) {
         renter.debit(getRent());
         getOwner().credit(getRent());
     }
@@ -291,7 +257,7 @@ class Property extends BoardSpace{
      * Getter for the current rent value of the property
      * @return the rent value of the proerty
      */
-    protected int getRent() {
+    int getRent() {
         int total = getDefaultRent();
 
         if (getOwner().ownsSetFor(this) && !developed()) {
@@ -306,21 +272,14 @@ class Property extends BoardSpace{
     /**
      * Gets rent for specified number of hosues
      */
-    protected int getHouseRent() {
+    int getHouseRent() {
         return houseRent[getHouses()-1];
-    }
-
-    /**
-     * Gets rent for specified number of hosues
-     */
-    protected int getHouseRent(int houses) {
-        return houseRent[houses-1];
-    }
+    } 
 
     /**
      * Gets rent for a hotel
      */
-    protected int getHotelRent() {
+    int getHotelRent() {
         return hotelRent;
     }
 
@@ -328,13 +287,9 @@ class Property extends BoardSpace{
      * Gets the development cost of a property
      * @return development cost of a proerty
      */
-    protected int getDevelopmentCost() {
+    int getDevelopmentCost() {
         return developmentCost;
-    }
-
-    protected String toRepr() {
-        return "map["+getId()+"] = new Property(banker, banker, \""+getName()+"\", \""+getType()+"\", "+getSetSize()+", "+getId()+", "+getRent()+", "+getHouseRent(1)+", "+getHouseRent(2)+", "+getHouseRent(3)+", "+getHouseRent(4)+", "+getHotelRent()+", "+getMortgageValue()+", "+getDevelopmentCost()+", "+getPrice()+");";
-    }
+    } 
 
     @Override
     public String toString() {
