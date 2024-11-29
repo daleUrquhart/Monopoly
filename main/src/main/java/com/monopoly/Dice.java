@@ -7,18 +7,28 @@
 
 package com.monopoly;
 
-import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException; 
 import java.util.Random;
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 
 /**
  * Dice object class
  */
-class Dice {
+final class Dice {
+
+    /**
+     * Path to resources directory
+     */
+    private static final String PATH = "../resources/com/monopoly/";
 
     /**
      * Random connection
      */
-    private Random rand;
+    private final Random rand;
 
     /**
      * Stores roll 1 value
@@ -28,79 +38,85 @@ class Dice {
     /**
      * Stores roll 2 value
      */
-    private int r2;
+    private int r2; 
 
     /**
-     * Current player
+     * Array containing different dice states
      */
-    ArrayList<Player> players;
+    private Image[] dice;
+
+    /**
+     * Image for first die
+     */
+    private final ImageView d1;
+
+    /**
+     * Image for second die
+     */
+    private final ImageView d2;
 
     /**
      * Default constructor for Dice
      */
-    Dice(ArrayList<Player> players) {
-        rand = new Random();
-        this.players = players;
+    Dice(GridPane d) {
+        setDice();
+        d1 = (ImageView) d.getChildren().get(0);
+        d2 = (ImageView) d.getChildren().get(1);
+        rand = new Random(); 
     }
 
+    /**
+     * Assigns dice states to the dice array
+     */
+    void setDice() {
+        dice = new Image[7];
+        for(int i = 1; i < 7; i++) {
+            try {
+                dice[i-1] = new Image(new FileInputStream(PATH + i + "_die.png"));
+            } catch (FileNotFoundException e) {
+                System.err.println("Image "+i+" note found. \n"+e.toString());
+            }
+        }
+    }
     /**
      * Roll simulator for dice
      * @return random int. between 2, and 12
      */
-    int roll() {
-        setR1(rand.nextInt(6)+1);
-        setR2(rand.nextInt(6)+1);
-        getCurrent().setRoll(getR1() + getR2());
-        return getR1()+getR2();
-    }
-
-    /**
-     * Gets teh current player
-     * @return the current player
-     */
-    Player getCurrent() {
-        for(Player p : getPlayers()) {
-            if(p.getCurrent()) {
-                return p;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Gets the players array list
-     * @return the players array lsit
-     */
-    ArrayList<Player> getPlayers() {
-        return players;
+    int roll(Player p) {
+        setD1(rand.nextInt(6)+1);
+        setD2(rand.nextInt(6)+1);
+        p.setRoll(getD1() + getD2());
+        return getD1()+getD2();
     }
 
     /**
      * get roll from dice 1
      */
-    int getR1() {
+    int getD1() {
         return r1;
     }
 
     /**
      * get roll from dice 2
      */
-    int getR2() {
+    int getD2() {
         return r2;
     }
 
     /**
      * Set roll from dice 1
      */
-    void setR1(int rolled) {
+    void setD1(int rolled) {
         r1 = rolled;
+        d1.setImage(dice[rolled-1]);
     }
 
     /**
      * Set roll from dice 2
      */
-    void setR2(int rolled) {
+    void setD2(int rolled) {
         r2 = rolled;
+        d2.setImage(dice[rolled-1]);
     }
 
     /**
@@ -108,6 +124,6 @@ class Dice {
      * @return true for if the roll was doubles
      */
     boolean doubles() {
-        return getR1()==getR2();
+        return getD1()==getD2();
     }
 }
