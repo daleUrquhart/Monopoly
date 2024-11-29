@@ -12,26 +12,20 @@ final class Tax extends BoardSpace {
     /**
      * Amount charged by tax
      */
-    private final int amount;
-
-    /**
-     * The banker 
-     */
-    Banker banker;
+    private final int amount; 
 
     /**
      * Constructor for Tax
      */
-    protected Tax(String name, int id, int amount, Banker banker) {
+    Tax(String name, int id, int amount) {
         super(name, id);
-        this.amount = amount;
-        this.banker = banker;
+        this.amount = amount; 
     }
 
     /**
      * Gets the amount of tax due
      */
-    protected int getTax() {
+    int getTax() {
         return amount;
     }
 
@@ -40,7 +34,7 @@ final class Tax extends BoardSpace {
      * @param p player being charged
      * @return true for if the charge was succesful
      */
-    protected void charge(Player p) { 
+    void charge(Player p, Banker banker) { 
         p.debit(getTax()); 
         banker.credit(getTax());
     }
