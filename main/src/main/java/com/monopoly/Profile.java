@@ -104,7 +104,7 @@ final class Profile {
     /**
      * Getst eh primary label
      */
-    GridPane getPrimary() {
+    GridPane getPrimary(Game game) { 
         return primary;
     } 
 

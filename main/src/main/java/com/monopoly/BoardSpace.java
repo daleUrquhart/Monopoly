@@ -13,12 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
-class BoardSpace {
-
-    /**
-     * Offset coeffecient so pieces dont overlap eachotehr
-     */
-    private static final int SCALE = 20;
+class BoardSpace { 
     /**
      * ImageView of the BoardSpace
      */
@@ -65,15 +60,7 @@ class BoardSpace {
      */
     int getId() {
         return id;
-    }
-
-    /**
-     * Gets the list of players on the space
-     * @return the occupants of the property
-     */
-    ArrayList<Player> getOccupants() {
-        return occupants;
-    }
+    } 
 
     StackPane getStack() {
         return tileStack;
@@ -92,23 +79,21 @@ class BoardSpace {
      * @param p player arrived
      */
     void addOccupant(Player p) { 
-        occupants.add(p);  
         int i = p.getProfile().getIndex();
-        Pos alignment = (i==1 ? Pos.TOP_LEFT : (i==2 ? Pos.TOP_RIGHT : (i==3 ? Pos.BOTTOM_LEFT : Pos.BOTTOM_RIGHT)));
-        ImageView cp = new ImageView(p.getProfile().getPiece().getImage());
-        StackPane.setAlignment(cp, alignment);
-        cp.setFitHeight(SCALE);
-        cp.setFitWidth(SCALE);
-        tileStack.getChildren().add(cp);  
+        ImageView img = p.getProfile().getIcon(); 
+        Pos alignment = (i==1 ? Pos.TOP_LEFT : (i==2 ? Pos.TOP_RIGHT : (i==3 ? Pos.BOTTOM_LEFT : Pos.BOTTOM_RIGHT))); 
+        StackPane.setAlignment(img, alignment); 
+        tileStack.getChildren().add(p.getProfile().getIcon());  
+        occupants.add(p);  
     }
 
     /**
      * Removes an occupant
-     * @param occupant to be removed
+     * @param p Player occupant to be removed
      */
     void removeOccupant(Player p) {
+        tileStack.getChildren().remove(p.getProfile().getIcon());  
         occupants.remove(p); 
-        //tile.getChildren().remove(p.getProfile().get);    TODO
     } 
 
     /**

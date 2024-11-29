@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -20,6 +21,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -94,16 +96,40 @@ public class App extends Application {
     private ArrayList<Image> pieces;
 
     /**
+     * Contains the two die instance
+     */
+    private GridPane dicePane; 
+
+    /**
+     * Contains the info for the game state
+     */
+    private GridPane gamePane;
+
+    /**
+     * Center StackPane of the board
+     */
+    private StackPane center;
+
+    /**
+     * Primary view of current player
+     */
+    private GridPane primary;
+
+    /**
      * Start method for the Monopoly GUI, ground zero
      */
     @Override
     public void start(@SuppressWarnings("exports") Stage stage) throws IOException {
         System.out.println("START");
-
+ 
+        center = new StackPane();
         profiles = new ArrayList<>();
         pieces = new ArrayList<>();
-        pane = new GridPane();  
-        game = new Game();   
+        pane = new GridPane();   
+        gamePane = new GridPane();
+
+        game = new Game(gamePane);    
+        pane.add(gamePane, 11, 0, GridPane.REMAINING, GridPane.REMAINING); 
         System.out.println("Game built succefully");
         
         buildTiles();
@@ -115,13 +141,18 @@ public class App extends Application {
         stage.show();
 
         buildPlayers();
-        System.out.println("Profiles built succesfully");
-
-
+        System.out.println("Profiles built succesfully"); 
     } 
 
     /**
-     * 
+     * Main game method
+     */
+    void game() {
+        gamePane = game.getCurrentPlayer().getProfile().getPrimary(game);
+    }
+
+    /**
+     * Builds the tiles
      */
     void buildTiles(){
         //Iterative tile build   
@@ -154,35 +185,48 @@ public class App extends Application {
                 game.getMap()[count].setTile(imageView);
                 pane.add(game.getSpace(count).getStack(), col, row);  
 
-                if(col == 10) {
-                    if(row == 10){
-                        col--;
-                    } else{
-                        row++;
-                    }
-                } else if(col == 0) {
-                    if(row == 0) {
-                        col++;
-                    } else {
-                        row--;
-                    }
-                } else if(row == 0) {
-                    col++;
-                } else if(row == 10) {
-                    col--;
-                }
+                if (col == 10 && row < 10) row++;
+                else if (col == 0 && row > 0) row--;
+                else if (row == 10 && col > 0) col--;
+                else if (row == 0 && col < 10) col++;
             } 
 
-            //Center tile
-        
-            InputStream inputStream = new FileInputStream(PATH+"center_tile.png");
-            Image image = new Image(inputStream);
-            ImageView imageView = new ImageView();
-            imageView.setImage(image); 
-            imageView.setFitHeight(9*MID*SCALE);
-            imageView.setFitWidth(9*MID*SCALE);
+            // Center tile 
+            InputStream boardStream = new FileInputStream(PATH + "center_tile.png");
+            Image board = new Image(boardStream);
+            ImageView boardView = new ImageView(board);
+            boardView.setFitHeight(9 * MID * SCALE);
+            boardView.setFitWidth(9 * MID * SCALE);
 
-            pane.add(imageView, 1, 1, 9, 9);
+            // Dice
+            InputStream d1Stream = new FileInputStream(PATH + "6_die.png");
+            Image d1 = new Image(d1Stream);
+            ImageView d1View = new ImageView(d1);
+            d1View.setFitHeight(MID * SCALE);
+            d1View.setFitWidth(MID * SCALE);
+
+            InputStream d2Stream = new FileInputStream(PATH + "6_die.png");
+            Image d2 = new Image(d2Stream);
+            ImageView d2View = new ImageView(d2);
+            d2View.setFitHeight(MID * SCALE);
+            d2View.setFitWidth(MID * SCALE);
+
+            // GridPane for dice, and adding dicePane to game
+            dicePane = new GridPane();
+            dicePane.add(d1View, 0, 0);
+            dicePane.add(d2View, 1, 0);
+            dicePane.setHgap(10);
+            dicePane.setAlignment(Pos.CENTER); 
+            dicePane.setOnMouseClicked((MouseEvent event) -> handleRoll()); 
+            game.setDice(new Dice(dicePane)); 
+
+            // StackPane for board and dice
+            center = new StackPane(boardView, dicePane);
+            center.setAlignment(Pos.CENTER);
+            
+            // Add to main grid
+            pane.add(center, 1, 1, 9, 9);
+
 
             //Game pieces
             for(int i = 0; i < 8; i++) {                                         
@@ -198,17 +242,40 @@ public class App extends Application {
     }
     
     /**
+     * Handles a roll event
+     */
+    void handleRoll() {   
+        // Save primary instance and remove the dicePane
+        primary = game.getCurrentPlayer().getProfile().getPrimary(game);
+        center.getChildren().remove(dicePane); 
+
+        // Handle the roll
+        game.handleRoll(); 
+
+        // Update gamePane for the new player, and add dice back
+        primary = game.getCurrentPlayer().getProfile().getPrimary(game);
+
+        // If player is in jail, call jail handler, else add the dice back to the center
+        if(game.getCurrentPlayer().inJail()) {
+            game.handleJail();
+        } else {
+            center.getChildren().add(dicePane);
+        }
+        
+        System.out.println("Bottom of App.handleRoll()");
+    }
+ 
+    /**
      * Handles getting player data and creating Profiles
      */
     void buildPlayers() { 
         primaryLabel = new Label("Enter the number of players you will have in your game: "); 
         primaryButton = new Button("Press to submit"); 
         primaryButton.setOnAction(e -> getCount());
-        primaryField = new TextField(); 
+        primaryField = new TextField("Name Here"); 
 
         primaryBox = new HBox(10, primaryLabel, primaryField, primaryButton);  
-
-        pane.add(primaryBox, 11, 0); 
+        gamePane.add(primaryBox, 0, 0);  
     }
 
     /**
@@ -240,9 +307,9 @@ public class App extends Application {
         }  
         game.setPlayerCount(count);
 
-        //Get names
+        //Setup for get names
         primaryLabel.setText("Enter the name for payer 1: ");  
-        primaryButton.setOnAction(e -> getNames()); 
+        primaryButton.setOnAction(e -> getNames());  
     }
 
     /**
@@ -274,8 +341,8 @@ public class App extends Application {
         HBox pieceBox1 = new HBox(), pieceBox2 = new HBox();
         VBox pieceBoxes = new VBox(pieceBox1, pieceBox2);
 
-        pane.getChildren().remove(primaryBox);
-        pane.add(primaryLabel, 11, 0); 
+        gamePane.getChildren().remove(primaryBox);
+        gamePane.add(primaryLabel, 0, 0); 
 
         primaryLabel.setText("Select a piece for "+name+":");   
  
@@ -288,7 +355,7 @@ public class App extends Application {
             if(i < 4) {pieceBox1.getChildren().add(viewer); }
             else      {pieceBox2.getChildren().add(viewer); }
         }
-        pane.add(pieceBoxes, 12, 0, 4, 2); 
+        gamePane.add(pieceBoxes, 1, 0, 4, 2); 
     }
 
     /**
@@ -298,36 +365,45 @@ public class App extends Application {
      * @param viewer The image viewer selected for the profile
      * @param pieceBoxes The conatiner storing the image options
      */
-    void handleSelction(String name, ImageView viewer, VBox pieceBoxes) { 
-        primaryLabel.setText("Enter the name for the next player "); 
-        primaryField.clear();
-
-        Profile profile = new Profile(viewer, game.getPlayers().size()+1); 
+    void handleSelction(String name, ImageView piece, VBox pieceBoxes) {         
+        // Build Profile and Player based on inputs
+        Profile profile = new Profile(piece, game.getPlayers().size()+1); 
         Player player = new Player(name, game.getGo(), profile);
-        profile.setPlayer(player);
+        if(game.getPlayers().isEmpty()) { game.setCurrentPlayer(player); }
+
+        profile.build(player, game); // setPlayer, setPrimary, setSecondary called inside 
         game.addPlayer(player);
         profiles.add(profile); 
 
-        pieces.remove(viewer.getImage()); 
-
-        primaryLabel.setText("Enter the name for the next player ");
-        
-        pane.getChildren().remove(pieceBoxes);
-        pane.getChildren().remove(primaryLabel);
+        // Remove piece selection GUI
+        gamePane.getChildren().remove(pieceBoxes);
+        gamePane.getChildren().remove(primaryLabel);
         primaryBox.getChildren().addFirst(primaryLabel);
-        if(game.getPlayers().size() != game.getPlayerCount()) { pane.add(primaryBox, 11, 0); }
-        else                                                  { 
+
+        // If there is more players to add
+        if(game.getPlayers().size() != game.getPlayerCount()) { 
+            //GUI
+            primaryLabel.setText("Enter the name for the next player "); 
+            primaryField.clear();
+            pieces.remove(piece.getImage());   
+
+            gamePane.add(primaryBox, 11, 0); 
+        }
+        // All player data has been collected
+        else { 
             profiles.get(0).getPlayer().flipCurrent();
+
             for(Profile p : profiles) {
-                if(p.getPlayer().getCurrent()) {
-                    pane.add(p.getMain(), 11, 0, 1, GridPane.REMAINING); 
-                } else {
-                    pane.add(p.getMain(), profiles.indexOf(p)*3, 11, 3, GridPane.REMAINING);
+                if(p.getPlayer().getCurrent()) { // If current, display data in gamePane
+                    //gamePane.getChildren().addAll(p.getPrimary().getChildren(game));
+                } else { // If not current, display data below board
+                    pane.add(p.getSecondary(), profiles.indexOf(p)*3, 11, 3, GridPane.REMAINING);
                 }
             } 
-        }      
-
-        //This marks the end of buildPlayers(), going back to start()
+            //This marks all players set up on board
+            game();
+        }       
+        
     }
 
     /**

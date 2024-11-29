@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Optional; 
 
 import javafx.scene.control.Alert;
@@ -18,10 +19,9 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.HBox; 
 
 /**
  * High level handler class for Monopoly funcitons
@@ -66,22 +66,17 @@ final class Game {
     /**
      * Community Chest deck
      */
-    private final ArrayList<Card> cCDeck;
+    private final List<Card> cCDeck;
 
     /**
      * Chance Deck
      */
-    private final ArrayList<Card> chanceDeck;
+    private final List<Card> chanceDeck;
 
     /**
      * Manages the current player
      */
     private Player current; 
-
-    /**
-     * Primiary field for handling rudementary instruction
-     */
-    private final TextField genField; 
 
     /**
      * Primary label for handling rudementary instruction
@@ -104,19 +99,17 @@ final class Game {
     Game(GridPane gamePane){ 
         turnIndex = 0; 
         
-        genField = new TextField();
         genLabel = new Label(); 
         genBox = new HBox(genLabel);
         this.gamePane = gamePane; 
         this.gamePane.getChildren().add(genBox);
 
-        players = new ArrayList<> ();
-        banker = new Banker();
+        players = new ArrayList<> (); 
         players = new ArrayList<>();
 
-        ArrayList<Card>[] decks = buildDecks();
-        chanceDeck = decks[0];
-        cCDeck = decks[1]; 
+        List<List<Card>> decks = buildDecks();
+        chanceDeck = decks.get(0);
+        cCDeck = decks.get(0); 
         System.out.println("\tDecks built succesfully..."); 
 
         map = buildMap();
@@ -150,14 +143,14 @@ final class Game {
     /**
      * Gets teh chance deck
      */
-    ArrayList<Card> getChanceDeck() {
+    List<Card> getChanceDeck() {
         return chanceDeck;
     } 
 
     /**
      * Gets the community chest deck
      */
-    ArrayList<Card> getCommunityChestDeck() {
+    List<Card> getCommunityChestDeck() {
         return cCDeck;
     }
  
@@ -260,16 +253,17 @@ final class Game {
     }
  
     /**
-     * Builds Chance Deck
+     * Builds Chance Decks.
      */
-    ArrayList<Card>[] buildDecks() {
-        ArrayList<Card>[] decks = new ArrayList[2];
-        try{
-            decks[0] = Card.getChanceDeck(PATH+"cards.csv");
-            decks [1] = Card.getCCDeck(PATH+"cards.csv");
+    List<List<Card>> buildDecks() {
+        List<List<Card>> decks = new ArrayList<>(2);
+        try {
+            decks.add(Card.getChanceDeck(PATH + "cards.csv"));
+            decks.add(Card.getCCDeck(PATH + "cards.csv"));
             return decks;
-        } catch(IOException e) {
-            System.out.println("Come on, idiot. Give me a good csv"); return new ArrayList[2];
+        } catch (IOException e) {
+            System.out.println("Come on, idiot. Give me a good csv");
+            return new ArrayList<>(2);
         }
     }
 
@@ -454,7 +448,7 @@ final class Game {
         int bid = 1, passedTurns = 0, turn = 0, attempt;
         boolean open = true, goodInt, yes;
         Player bidder = getPlayer(turn); 
-        Banker highestBidder = location.getOwner(); 
+        Entity highestBidder = location.getOwner(); 
 
         //Per player:
         while(open) {
@@ -576,44 +570,21 @@ final class Game {
      * Handles the private sale of a property
      * @return true for if there was a succesful transfer of property
      */
-    boolean handlePrivateSale(Property property) {
-        Player player = null;
+    boolean handlePrivateSale(Property property) { 
         boolean negotiating=true, goodInt=false;
         int lastOffer = Integer.MAX_VALUE, offer=0;
-
-        //Prompt input
-        String name;
-        ArrayList<String> names = new ArrayList<>();
+        Player player, owner = (Player) property.getOwner();  
         
-        System.out.print("Who would you like to sell the property to? (");
-        for(Player p : getPlayers()) {
-            if(p.equals(property.getOwner())) {continue;}
-            names.add(p.getName());
-            System.out.print(" "+p.getName()+" ");
-        }
-        System.out.print("): ");
-
-        //Get name
-        name = stringInput();
-        while(!names.contains(name)) {
-            System.out.print("Name not found, try again: ");
-            name = stringInput();
-        }
-
-        //Get Player
-        for(Player p : getPlayers()) {
-            if(p.getName().equals(name)) {
-                player = p;
-            }
-        }
+        //Get player
+        player = selectPlayer(owner);
 
         //Get price
         while(negotiating) {
             //Get seller offer
-            System.out.print(property.getOwner().getName() + ", what do you offer? (offer -1 to quit negotiations) ");
+            System.out.print(owner.getName() + ", what do you offer? (offer -1 to quit negotiations) ");
             while(!goodInt) {
                 try {
-                    offer = getInt();
+                    offer = intInput("Private Sale", owner.getName() + ", what do you offer? (offer -1 to quit negotiations) ", "Enter your offer", -1, owner.getBalance());
                     if(offer == -1) {
                         negotiating = false;
                         break;
@@ -639,6 +610,31 @@ final class Game {
             }
         }
         return false;
+    }
+
+    /**
+    * Displays a dialog to select a player and returns the selected player.
+    * @param owner the owner of the property
+    * @return the selected player, or null if no selection was made
+    */
+    Player selectPlayer(Player owner) {
+        // Create a list of available players for selection
+        List<Player> availablePlayers = new ArrayList<>();
+        for (Player p : getPlayers()) {
+            if (!p.equals(owner)) {
+                availablePlayers.add(p);
+            }
+        } 
+
+        // Create and display the selection dialog
+        ChoiceDialog<Player> dialog = new ChoiceDialog<>(availablePlayers.get(0), availablePlayers);
+        dialog.setTitle("Select Player");
+        dialog.setHeaderText("Select a player to sell the property to");
+        dialog.setContentText("Available Players:");
+
+        // Show dialog and capture the selected player
+        Optional<Player> result = dialog.showAndWait();
+        return result.orElse(null);
     }
 
     /**
@@ -674,7 +670,7 @@ final class Game {
      */
     void handleOwnedProperty() { 
         Property property = (Property) current.getLocation();
-        Banker owner = property.getOwner();
+        Entity owner = property.getOwner();
         
         if (!owner.equals(current)) {
             // Can not afford the rent
@@ -792,6 +788,10 @@ final class Game {
         } 
     } 
 
+    /**
+     * Handles the turn logic for when the player is in jail
+     * @return true for if the player rolled doubles and got out of jail
+     */
     boolean handleJail() {
         boolean freedByDoubles = false;
         String message;

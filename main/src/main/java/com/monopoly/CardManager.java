@@ -9,7 +9,7 @@
 package com.monopoly;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -20,7 +20,7 @@ final class CardManager extends BoardSpace {
     /**
      * Deck
      */
-    private ArrayList<Card> deck;
+    private List<Card> deck;
 
     /**
      * Random connection
@@ -35,7 +35,7 @@ final class CardManager extends BoardSpace {
     /**
      * Constructor for CardManager Instance
      */
-    CardManager(String name, int id, ArrayList<Card> deck) {
+    CardManager(String name, int id, List<Card> deck) {
         super(name, id);
         this.deck = deck;
         rand = new Random();
@@ -64,10 +64,9 @@ final class CardManager extends BoardSpace {
         Player p = game.getCurrentPlayer();
         Utility utility;
         Railroad rr;
-        Banker banker = Banker.getInstance();
-
+        Banker banker = Banker.getInstance(); 
         if(card.isGetOutOfJail())   {p.addJailCard();}
-        if(card.isGoToJail())       {p.flipJailed();}
+        if(card.isGoToJail())       {game.getJail().addPlayer(p);}
         if(card.isAdvanceBy())      {
             p.setLocation(game.getSpace(p.getLocation().getId() + card.getSteps()));
             game.handleNewLocation();

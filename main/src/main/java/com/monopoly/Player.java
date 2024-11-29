@@ -188,7 +188,7 @@ final class Player extends Entity {
      * Handles bankruptcy casued by anotehr player
      * @param bankrupter the player who caused the bankruptcy
      */
-    void bankrupted(Banker bankrupter, Game game) {  
+    void bankrupted(Entity bankrupter, Game game) {  
 
         for(Property p : getProperties()) {
             bankrupter.addProperty(p);
