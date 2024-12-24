@@ -28,7 +28,7 @@ final class Profile {
     /**
      * The profile's primary GUI component
      */
-    private final GridPane primary;
+    //private final GridPane primary;
 
     /**
      * Represents a player's game piece
@@ -57,7 +57,7 @@ final class Profile {
         setPiece(piece);
         this.index = index;
         this.secondary = new GridPane();  
-        this.primary = new GridPane(); 
+        //this.primary = new GridPane(); 
     } 
 
     /**
@@ -65,7 +65,7 @@ final class Profile {
      */
     void build(Player player, Game game) {
         this.player = player;
-        setPrimary(game);
+        //setPrimary(game);
         setSecondary();
     } 
 
@@ -103,22 +103,25 @@ final class Profile {
 
     /**
      * Getst eh primary label
-     */
-    GridPane getPrimary(Game game) { 
+     
+    GridPane getPrimary() { 
         return primary;
     } 
+    */
 
     /**
      * Returns the seconadry view of the profile data
      */
     GridPane getSecondary() {
         return secondary;
-    }
-    
+    } 
+
     /**
      * Builds the primary label
      */
-    void setPrimary(Game game) {
+    GridPane getPrimary(Game game) {
+        GridPane primary = new GridPane();
+
         Label prompt = new Label("It is your turn, click the dice to roll and move and end your turn, "+
                                    "or from the following options first:");  
         HBox pBox;
@@ -167,9 +170,11 @@ final class Profile {
             if(p.isMortgaged() && getPlayer().canAfford((int) (p.getMortgageValue() * 1.1))) {
                 pBox.getChildren().add(unMortgageB);
             }
-            //primary.getChildren().add(pBox);
+            primary.getChildren().addLast(pBox);
         } 
+        return primary;
     }
+    
 
     /**
      * Builds the secondary display of the player

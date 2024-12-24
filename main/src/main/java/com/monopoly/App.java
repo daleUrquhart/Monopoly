@@ -145,13 +145,6 @@ public class App extends Application {
     } 
 
     /**
-     * Main game method
-     */
-    void game() {
-        gamePane = game.getCurrentPlayer().getProfile().getPrimary(game);
-    }
-
-    /**
      * Builds the tiles
      */
     void buildTiles(){
@@ -250,19 +243,16 @@ public class App extends Application {
         center.getChildren().remove(dicePane); 
 
         // Handle the roll
-        game.handleRoll(); 
-
-        // Update gamePane for the new player, and add dice back
-        primary = game.getCurrentPlayer().getProfile().getPrimary(game);
+        game.handleRoll(gamePane);  
 
         // If player is in jail, call jail handler, else add the dice back to the center
         if(game.getCurrentPlayer().inJail()) {
-            game.handleJail();
+            game.handleJail(gamePane);
         } else {
             center.getChildren().add(dicePane);
-        }
+        } 
         
-        System.out.println("Bottom of App.handleRoll()");
+        gamePane.add(game.getCurrentPlayer().getProfile().getPrimary(game), 0, 0);
     }
  
     /**
@@ -272,7 +262,7 @@ public class App extends Application {
         primaryLabel = new Label("Enter the number of players you will have in your game: "); 
         primaryButton = new Button("Press to submit"); 
         primaryButton.setOnAction(e -> getCount());
-        primaryField = new TextField("Name Here"); 
+        primaryField = new TextField(); 
 
         primaryBox = new HBox(10, primaryLabel, primaryField, primaryButton);  
         gamePane.add(primaryBox, 0, 0);  
@@ -373,7 +363,7 @@ public class App extends Application {
 
         profile.build(player, game); // setPlayer, setPrimary, setSecondary called inside 
         game.addPlayer(player);
-        profiles.add(profile); 
+        profiles.add(profile);  
 
         // Remove piece selection GUI
         gamePane.getChildren().remove(pieceBoxes);
@@ -400,8 +390,8 @@ public class App extends Application {
                     pane.add(p.getSecondary(), profiles.indexOf(p)*3, 11, 3, GridPane.REMAINING);
                 }
             } 
-            //This marks all players set up on board
-            game();
+            //This marks all players set up on board 
+            gamePane.add(game.getCurrentPlayer().getProfile().getPrimary(game), 0, 0);
         }       
         
     }

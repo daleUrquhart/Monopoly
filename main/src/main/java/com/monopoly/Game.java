@@ -519,8 +519,11 @@ final class Game {
     /**
      * Handles dice rolling and player movement logic 
      */
-    void handleRoll() {
+    void handleRoll(GridPane primary) {
         try {  
+            //Remove general player data display
+            gamePane.getChildren().remove(primary);
+
             // Make roll and assign the new location
             int roll = getDice().roll(current);  
             int newSpace = roll + current.getLocation().getId();
@@ -564,6 +567,9 @@ final class Game {
         } catch(NullPointerException e) {
             System.err.println("Null pointer exception in Game.handleRoll()\n"+e);
         } 
+
+        // Clear the Game instance vars from the gamePane
+        gamePane.getChildren().removeAll(genLabel, genBox);
     }
 
     /**
@@ -792,7 +798,7 @@ final class Game {
      * Handles the turn logic for when the player is in jail
      * @return true for if the player rolled doubles and got out of jail
      */
-    boolean handleJail() {
+    boolean handleJail(GridPane primary) {
         boolean freedByDoubles = false;
         String message;
         int choice;
@@ -818,7 +824,7 @@ final class Game {
 
         // No action taken
         if (result.isEmpty()) {
-            handleJail();
+            handleJail(primary);
         }
 
         choice = result.get();

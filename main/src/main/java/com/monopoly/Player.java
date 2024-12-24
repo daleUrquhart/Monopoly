@@ -313,10 +313,12 @@ final class Player extends Entity {
 
     @Override
     public String toString() {
-        String out = "Name: "+getName()+"\nLocation: "+getLocation().getName()+"\nBalance: "+getBalance()+"\nGet out of jail free cards: "+getJailCardNum()+"\nIn Jail? "+inJail()+"\nNet Worth: "+getNetWorth()+"\n---------- Properties ----------\n";
+        String out = "Name: "+getName()+"\nLocation: "+getLocation().getName()+"\nBalance: "+getBalance()+"\nGet out of jail free cards: "+getJailCardNum()+"\nIn Jail? "+inJail()+"\nNet Worth: "+getNetWorth();//+"\n---------- Properties ----------\n";
+        /*
         for(Property p : getProperties()) {
             out += p.toString()+"\n\n";
         }
+        */
         return out;
     }
 }
