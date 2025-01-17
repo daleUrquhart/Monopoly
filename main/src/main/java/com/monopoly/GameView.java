@@ -180,8 +180,6 @@ public class GameView {
      * @param p Current player
      */
     void displayCurrent(Player current, GameController controller) {
-
-        System.out.println("Updating display for: "+current.getName());
         pane.getChildren().clear();
         updateCurrentPlayerDislay(current, controller);
         pane.add(currentPlayerDisplay, 0, 0); 
@@ -196,7 +194,8 @@ public class GameView {
         HBox pBox;
         Button buyDevelopmentBoxB, mortgageB, unMortgageB, auctionB, privateSaleB, sellB, sellDevelopmentB; 
 
-        display.getChildren().addAll(current.getPiece(), data);
+        display.getChildren().addAll(data);
+        //display.getChildren().addAll(current.getPiece(), data); Try not adding piece to  view to see if it stays on board
 
         // Lengthy button display logic (dont offer to mortage an already mortgaged property, etc.)
         for(Property p : current.getProperties()) { 
@@ -250,7 +249,10 @@ public class GameView {
      * @param message Message to be displayed
      */
     void showMessage(String message) {
+        pane.getChildren().clear();
         currentPlayerDisplay.getChildren().addFirst(new Label(message));
+        pane.add(currentPlayerDisplay, 0, 0); 
+        
     }
 
     /**

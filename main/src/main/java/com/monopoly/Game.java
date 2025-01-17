@@ -374,8 +374,8 @@ public final class Game {
                 result = -1;
             }
         } else {
-            result = 0;
             current.resetDoubleCount();
+            result = 0;
         }
 
         return result;
@@ -389,13 +389,7 @@ public final class Game {
         BoardSpace location = getCurrentPlayer().getLocation();
         boolean result;
         
-        result = location instanceof Property; 
-
-        // Did not get doubles
-        if(!getDice().doubles()) {
-            current.resetDoubleCount(); 
-            current = getNextPlayer(); 
-        }  
+        result = location instanceof Property;  
         
         return result;
     } 
@@ -409,6 +403,60 @@ public final class Game {
         boolean result = location.getOwner() instanceof Player;
         
         return result;
+    }
+
+    /**
+     * Handles a roll of the dice
+     */
+    void handleRoll(GameView view, GameController controller) {   
+        view.clearDispPane();
+        
+        // Make roll and assign the new location
+        int roll = getDice().roll(getCurrentPlayer());  
+        int newSpace = roll + current.getLocation().getId();
+
+        view.showMessage("You rolled a "+roll+"!");
+
+        // Passed Go
+        if(passedGo(newSpace)) {
+            view.showMessage("\nYou passed Go! Here is $200.");
+            newSpace -= getMap().length;
+        }
+
+        // Assign new location
+        current.setLocation(getSpace(newSpace));
+
+        // Handle Doubles logic 
+        switch (handleDoubles()) {
+            case -1:
+                view.showMessage("\nYou rolled doubles, you get to roll again after your turn! ");
+                break; 
+            case 1:
+                view.showMessage("\nThat was your third doubles, go to jail! ");
+                break; 
+            default:
+                break;
+        }
+
+        // Handle the logic for landing on the new location 
+        if(isProperty()) {
+            if(isOwned()) {
+                controller.handleOwnedProperty();
+            } else {
+                controller.handleUnownedProperty();
+            } 
+        } else {
+            handleSpecialSquare(controller);
+        }
+
+        // Assign next player
+        getNextPlayer();
+        System.out.println("Got next player: "+current.getName());
+        view.displayCurrent(current, controller);
+
+        // Is the next player in jail?
+        if(current.inJail()) controller.handleJailTurn();
+        else view.showDice();
     }
 
     /**
@@ -474,8 +522,8 @@ public final class Game {
     } 
 
     /**
-     * 
-     * @return
+     * Gets the options a player has for their turn in jail
+     * @return Integer list of numbers corrosponding to turn actions
      */
     public List<Integer> getValidJailChoices() {
         List<Integer> choices = new ArrayList<>();
@@ -490,9 +538,9 @@ public final class Game {
     }
 
     /**
-     * 
-     * @param choice
-     * @return
+     * Handle the choice selected from the options in getValidJailChoices()
+     * @param choice Choice selected
+     * @return Whether or not they were freed by doubles
      */
     public boolean handleJailChoice(int choice) {
         boolean freedByDoubles = false;

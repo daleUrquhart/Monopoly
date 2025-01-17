@@ -81,7 +81,6 @@ public class BoardSpace {
     void addOccupant(Player p) { 
         int index = p.getID();
         ImageView img = p.getPiece(); 
-        //System.out.println("ID for "+p.getName()+": "+p.getID());
         Pos alignment = (index==0 ? Pos.TOP_LEFT : (index==1 ? Pos.TOP_RIGHT : (index==2 ? Pos.BOTTOM_LEFT : Pos.BOTTOM_RIGHT))); 
         StackPane.setAlignment(img, alignment); 
         tileStack.getChildren().add(img);  

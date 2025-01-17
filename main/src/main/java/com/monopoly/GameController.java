@@ -49,7 +49,7 @@ class GameController {
         view.setCenterPane(bb.buildCenter(game, view.getMainPane())); 
  
         view.setDicePane(bb.buildDice(game, view.getMainPane())); 
-        view.getDicePane().setOnMouseClicked(e -> handleRoll());  
+        view.getDicePane().setOnMouseClicked(e -> game.handleRoll(view, this));  
 
         // Start player building process
         // Set a listener for when the player setup is complete
@@ -64,59 +64,6 @@ class GameController {
 
         pb.initiatePlayerSetup();
         pb.loadPlayersToGame(game); 
-    }
-    
-    /**
-     * Handles a roll of the dice
-     */
-    private void handleRoll() {   
-        Player current = game.getCurrentPlayer();
-        view.clearDispPane();
-        
-        // Make roll and assign the new location
-        int roll = game.getDice().roll(game.getCurrentPlayer());  
-        int newSpace = roll + current.getLocation().getId();
-
-        view.showMessage("You rolled a "+roll+"!");
-
-        // Passed Go
-        if(game.passedGo(newSpace)) {
-            view.showMessage("\nYou passed Go! Here is $200.");
-            newSpace -= game.getMap().length;
-        }
-
-        // Assign new location
-        current.setLocation(game.getSpace(newSpace));
-
-        // Handle Doubles logic
-        // No doubles
-        switch (game.handleDoubles()) {
-            case -1:
-                view.showMessage("\nYou rolled doubles, you get to roll again after your turn! ");
-                break; 
-            case 1:
-                view.showMessage("\nThat was your third doubles, go to jail! ");
-                break; 
-            default:
-                break;
-        }
-
-        // Handle the logic for landing on the new location 
-        if(game.isProperty()) {
-            if(game.isOwned()) {
-                handleOwnedProperty();
-            } else {
-                handleUnownedProperty();
-            } 
-        } else {
-            game.handleSpecialSquare(this);
-        }
-
-        // Is the next player in jail?
-        view.displayCurrent(current, this);
-        if(current.inJail()) handleJailTurn();
-        else view.showDice();
-
     } 
 
     /**
