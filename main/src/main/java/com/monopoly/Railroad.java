@@ -7,7 +7,7 @@ package com.monopoly;
 /**
  * Railroad class
  */
-final class Railroad extends Property{
+public final class Railroad extends Property{
 
     /**
      * Constructor for Railroad

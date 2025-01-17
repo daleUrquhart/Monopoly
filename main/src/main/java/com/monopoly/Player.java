@@ -7,20 +7,32 @@
 
 package com.monopoly;
 
+import javafx.scene.image.ImageView;
+
 /**
  * Player object
  */
 final class Player extends Entity { 
 
     /**
+     * ID Counter
+     */
+    private static int ID_COUNTER = 0;
+
+    /**
+     * ID of the player instance
+     */
+    private final int ID;
+
+    /**
      * Whether or not this player is the current one
      */
-    private Boolean current;
+    private boolean current;
 
     /**
      * Players last roll
      */
-    int roll;
+    private int roll;
 
     /**
      * Player's location on the board
@@ -45,34 +57,27 @@ final class Player extends Entity {
     /**
      * Amount of times doubles have been rolled in a row for one turn
      */
-    private int doubleCount;
+    private int doubleCount; 
 
     /**
-     * Profile represenitng the player instance
+     * Piece representing the player
      */
-    Profile profile;
+    private final ImageView piece;
 
     /**
      * Parametrized constructor for Player object
      * @param name Player's name
      */
-    Player(String name, BoardSpace location, Profile profile) {
-        super(name, 1500);
-        this.profile = profile;
+    Player(String name, Go location, ImageView piece) { 
+        super(name, 1500); 
+        this.piece = piece;
         setInitialLocation(location);
         current = false;
         jailCardNum = 0;
         jail = false;
         jailTurns = 0;  
-    }
-
-    /**
-     * Gets whetehr the player is the current one or not
-     * @return true for if this is the current player, false otherwise
-     */
-    Boolean getCurrent() {
-        return current;
-    }
+        ID = ID_COUNTER++;
+    } 
 
     /**
      * Checks double count for turn
@@ -80,6 +85,23 @@ final class Player extends Entity {
      */
     int getDoubleCount() {
         return doubleCount;
+    }
+    
+    /**
+     * Gets the piece representing the player
+     * @return the piece representing the player
+     */
+    ImageView getPiece() {
+        return piece;
+    }
+
+    /**
+     * Getst the ID of the player
+     * Used for icon corner placement on the map
+     * @return ID of the player
+     */
+    int getID() {
+        return ID;
     }
 
     /**
@@ -118,15 +140,7 @@ final class Player extends Entity {
      */
     int getRoll() {
         return roll;
-    }
-
-    /**
-     * Gets teh profile representing this layer instance
-     * @return Profile representing this player instance
-     */
-    Profile getProfile() {
-        return profile;
-    }
+    } 
 
     /**
      * Gets number of get out of jail free cards
@@ -195,7 +209,7 @@ final class Player extends Entity {
             //If property is mortgaged give option to pay it off
             if(p.isMortgaged()) {
                 System.out.print(p.toString()+"\nIs mortgaged, would you like to unmortgage it now, or do so later? ");
-                if(game.boolInput("Bankruptcy", p.toString()+" is mortgaged.", "Would you like to unmortgage it now, for "+(int) ((double) p.getMortgageValue() * 1.1)+", or wait until later and only pay the current intrest owing of "+(int) ((double) p.getMortgageValue() * 0.1)+".")) {
+                if(GameView.getBoolInput("Bankruptcy", p.toString()+" is mortgaged.", "Would you like to unmortgage it now, for "+(int) ((double) p.getMortgageValue() * 1.1)+", or wait until later and only pay the current intrest owing of "+(int) ((double) p.getMortgageValue() * 0.1)+".")) {
                     p.unMortgage();
                 } else {
                     System.out.println("Property remains mortgaged, intrest only payment made. ");
@@ -210,17 +224,7 @@ final class Player extends Entity {
 
         bankrupter.credit(getBalance());
         game.removePlayer(this);
-    }
-
-    /**
-     * Handles bankruptcy casued by the bank
-     */
-    void bankrupted(Game game) { 
-        game.removePlayer(this); 
-        for(Property p : getProperties()) {
-            game.handleAuction(p);
-        } 
-    }
+    } 
 
     /**
      * Sets the players last roll

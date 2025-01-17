@@ -59,7 +59,7 @@ final class CardManager extends BoardSpace {
     /**
      * Handles the actions described on drawn
      */
-    static void handle(Card card, Game game) {
+    static void handle(Card card, Game game, GameController controller) {
         int total;
         Player p = game.getCurrentPlayer();
         Utility utility;
@@ -69,7 +69,7 @@ final class CardManager extends BoardSpace {
         if(card.isGoToJail())       {game.getJail().addPlayer(p);}
         if(card.isAdvanceBy())      {
             p.setLocation(game.getSpace(p.getLocation().getId() + card.getSteps()));
-            game.handleNewLocation();
+            game.isProperty();
         }
         if(card.isAdvanceTo())      {
             int starting = p.getLocation().getId();
@@ -77,7 +77,7 @@ final class CardManager extends BoardSpace {
             if(starting > p.getLocation().getId()) {
                 game.getGo().reward(p);
             }
-            game.handleNewLocation();
+            game.isProperty();
         }
         if(card.isPerPlayer())      {
             for(Player player : game.getPlayers()) {player.credit(card.getPlayerAmount());}
@@ -100,8 +100,8 @@ final class CardManager extends BoardSpace {
                 p.setLocation(game.getSpace(space));
                 rr = (Railroad) p.getLocation();
                 if(!rr.getOwner().equals(banker) && !rr.getOwner().equals(p)) {rr.chargeChanceRent(p); } 
-                else if(rr.getOwner().equals(banker))                         {game.handleUnownedProperty();}
-                else{game.handleOwnedProperty();}
+                else if(rr.getOwner().equals(banker))                         {controller.handleUnownedProperty();}
+                else{controller.handleOwnedProperty();}
                 
             }
 
@@ -112,8 +112,8 @@ final class CardManager extends BoardSpace {
                 p.setLocation(utility);
                 //Handle new locaiton
                 if(!utility.getOwner().equals(banker) && !utility.getOwner().equals(p)) {utility.chargeChanceRent(p);} 
-                else if(utility.getOwner().equals(banker))                              {game.handleUnownedProperty();}
-                else{game.handleOwnedProperty();}
+                else if(utility.getOwner().equals(banker))                              {controller.handleUnownedProperty();}
+                else{controller.handleOwnedProperty();}
             }
         }
     }

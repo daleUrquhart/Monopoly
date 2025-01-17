@@ -10,7 +10,7 @@ package com.monopoly;
 /**
  * Property object class
  */
-class Property extends BoardSpace{
+public class Property extends BoardSpace{
 
     /**
      * Default rent

@@ -7,7 +7,7 @@ package com.monopoly;
 /**
  * GoToJail class
  */
-final class GoToJail extends BoardSpace { 
+public final class GoToJail extends BoardSpace { 
 
     /**
      * Constructor for GoToJail

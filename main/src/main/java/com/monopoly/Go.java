@@ -10,7 +10,7 @@ package com.monopoly;
 /**
  * Go Space
  */
-final class Go extends BoardSpace {
+public final class Go extends BoardSpace {
 
     /**
      * Reward for reaching Go

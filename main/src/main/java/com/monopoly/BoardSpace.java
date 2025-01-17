@@ -13,7 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
-class BoardSpace { 
+public class BoardSpace { 
     /**
      * ImageView of the BoardSpace
      */
@@ -79,11 +79,12 @@ class BoardSpace {
      * @param p player arrived
      */
     void addOccupant(Player p) { 
-        int i = p.getProfile().getIndex();
-        ImageView img = p.getProfile().getIcon(); 
-        Pos alignment = (i==1 ? Pos.TOP_LEFT : (i==2 ? Pos.TOP_RIGHT : (i==3 ? Pos.BOTTOM_LEFT : Pos.BOTTOM_RIGHT))); 
+        int index = p.getID();
+        ImageView img = p.getPiece(); 
+        //System.out.println("ID for "+p.getName()+": "+p.getID());
+        Pos alignment = (index==0 ? Pos.TOP_LEFT : (index==1 ? Pos.TOP_RIGHT : (index==2 ? Pos.BOTTOM_LEFT : Pos.BOTTOM_RIGHT))); 
         StackPane.setAlignment(img, alignment); 
-        tileStack.getChildren().add(p.getProfile().getIcon());  
+        tileStack.getChildren().add(img);  
         occupants.add(p);  
     }
 
@@ -92,7 +93,7 @@ class BoardSpace {
      * @param p Player occupant to be removed
      */
     void removeOccupant(Player p) {
-        tileStack.getChildren().remove(p.getProfile().getIcon());  
+        tileStack.getChildren().remove(p.getPiece());  
         occupants.remove(p); 
     } 
 

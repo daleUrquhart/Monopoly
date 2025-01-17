@@ -7,7 +7,7 @@ package com.monopoly;
 /**
  * Tax object
  */
-final class Tax extends BoardSpace {
+public final class Tax extends BoardSpace {
 
     /**
      * Amount charged by tax

@@ -7,7 +7,7 @@ package com.monopoly;
 /**
  * Utility class
  */
-final class Utility extends Property{  
+public final class Utility extends Property{  
 
     /**
      * Constructor for Utility

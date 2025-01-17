@@ -9,7 +9,7 @@
  /**
   * Banker object that follows the Singleton pattern to ensure only one instance exists.
   */
- final class Banker extends Entity {
+ public final class Banker extends Entity {
  
     // Private static instance of the Banker class
     private static final Banker INSTANCE = new Banker();

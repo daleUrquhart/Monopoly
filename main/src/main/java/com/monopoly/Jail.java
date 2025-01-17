@@ -27,6 +27,7 @@ public class Jail extends BoardSpace{
     void addPlayer(Player p) {
         jailedPlayers.add(p);
         p.flipJailed();
+        p.resetDoubleCount();
     }
 
     /**
