@@ -50,7 +50,7 @@ public class GameView {
         mainPane = new GridPane(); 
         pane = new GridPane();
         currentPlayerDisplay = new VBox();
-        pane.add(currentPlayerDisplay, 0, 0); 
+        
         mainPane.add(pane, 11, 0, GridPane.REMAINING, GridPane.REMAINING);  
     } 
 
@@ -180,8 +180,11 @@ public class GameView {
      * @param p Current player
      */
     void displayCurrent(Player current, GameController controller) {
+
         System.out.println("Updating display for: "+current.getName());
+        pane.getChildren().clear();
         updateCurrentPlayerDislay(current, controller);
+        pane.add(currentPlayerDisplay, 0, 0); 
     }
 
     /**
