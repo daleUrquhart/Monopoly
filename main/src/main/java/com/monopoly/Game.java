@@ -455,7 +455,12 @@ public final class Game {
         view.displayCurrent(current, controller);
 
         // Is the next player in jail?
-        if(current.inJail()) controller.handleJailTurn();
+        if(current.inJail()) {
+            if(controller.handleJailTurn()) {
+                view.showDice();
+            }
+            
+        }
         else view.showDice();
     }
 
@@ -490,8 +495,7 @@ public final class Game {
         } 
         
         else if (location instanceof GoToJail) {  
-            jail.addPlayer(current);
-            current.setLocation(getJail()); 
+            jail.addPlayer(current);            
             GameView.showAlert("Go directly to Jail", "Do not pass Go, do not collect $200! ");
             if(getDice().doubles()) {increment(getTurnIndex());} //Do not go again from doubles if landed on go to jail, re-increment turn index
         } 
@@ -572,7 +576,7 @@ public final class Game {
     }
 
     /**
-     * 
+     * Increments the amount of failed jail turns
      */
     private void incrementFailedJailTurn() {
         current.incrementJailTurns();
@@ -582,7 +586,7 @@ public final class Game {
     }
 
     /**
-     * 
+     * Handles the event of maximum jail turns reached
      */
     private void handleMaxJailTurns() {
         Jail jail = getJail();
@@ -598,7 +602,7 @@ public final class Game {
     }
 
     /**
-     * 
+     * Handles the bankruptcy state of a player by eitehr liquidating assets or sending them  into bankruptcy
      */
     private void handleBankruptcy() {
         if (current.liquidate(getBail(), this)) {
@@ -610,13 +614,29 @@ public final class Game {
     }
 
     /**
-     * 
+     * Manages the actions for bankrupting a player
      */
     private void bankruptPlayer() {
         if (getPlayerCount() == 2) {
             removePlayer(current);
         } else {
             getCurrentPlayer().bankrupted(Banker.getInstance(), this);
+        }
+    }
+
+    /**
+     * Gets the message to display to user on their jail turn
+     * @return String content for message
+     */
+    String getJailMessage() {
+        if (getCurrentPlayer().ownsJailCard()) {
+            return getCurrentPlayer().canAfford(getBail())
+                ? "Choose an option:\n1. Pay fine\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card"
+                : "Choose an option:\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card";
+        } else {
+            return getCurrentPlayer().canAfford(getBail())
+                ? "Choose an option:\n1. Pay fine\n2. Try for doubles"
+                : "You must try for doubles.";
         }
     }
 }

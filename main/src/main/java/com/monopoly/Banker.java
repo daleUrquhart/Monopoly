@@ -11,10 +11,14 @@
   */
  public final class Banker extends Entity {
  
-    // Private static instance of the Banker class
+    /**
+     * Private static instance of the Banker class keeps the same banker easily accessable accross project  
+     */ 
     private static final Banker INSTANCE = new Banker();
 
-    // Private constructor to prevent instantiation from other classes
+    /**
+     * Private constructor to prevent instantiation from other classes
+     */
     private Banker() {
         super("Banker", Integer.MAX_VALUE);
     }

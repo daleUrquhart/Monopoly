@@ -291,6 +291,9 @@ public class Property extends BoardSpace{
         return developmentCost;
     } 
 
+    /**
+     * String representation of a property instance
+     */
     @Override
     public String toString() {
         return super.toString()+"\nPrice: $"+getPrice();

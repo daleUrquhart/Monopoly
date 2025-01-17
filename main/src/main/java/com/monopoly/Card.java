@@ -390,6 +390,9 @@ class Card {
     }
      */
      
+    /**
+     * Returns a string representation of the card
+     */
     @Override
     public String toString() {
         return getName();

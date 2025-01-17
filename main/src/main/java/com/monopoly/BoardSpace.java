@@ -13,7 +13,10 @@ import javafx.geometry.Pos;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
-public class BoardSpace { 
+/**
+ * Abstract BoardSpace parent to all landing tiles in the game
+ */
+abstract public class BoardSpace { 
     /**
      * ImageView of the BoardSpace
      */

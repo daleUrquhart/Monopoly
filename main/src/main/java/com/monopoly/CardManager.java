@@ -14,6 +14,7 @@ import java.util.Random;
 
 /**
  * CardManager class
+ * Handles actions from card drawn from community chest or chance
  */
 final class CardManager extends BoardSpace {
 
@@ -34,6 +35,9 @@ final class CardManager extends BoardSpace {
 
     /**
      * Constructor for CardManager Instance
+     * @param name Name of the deck (Commmunity Chest / Chance)
+     * @param id Location of the deck's spot on the board
+     * @param deck Deck to work with
      */
     CardManager(String name, int id, List<Card> deck) {
         super(name, id);
@@ -65,8 +69,8 @@ final class CardManager extends BoardSpace {
         Utility utility;
         Railroad rr;
         Banker banker = Banker.getInstance(); 
-        if(card.isGetOutOfJail())   {p.addJailCard();}
-        if(card.isGoToJail())       {game.getJail().addPlayer(p);}
+        if(card.isGetOutOfJail())   p.addJailCard();
+        if(card.isGoToJail())       game.getJail().addPlayer(p);
         if(card.isAdvanceBy())      {
             p.setLocation(game.getSpace(p.getLocation().getId() + card.getSteps()));
             game.isProperty();

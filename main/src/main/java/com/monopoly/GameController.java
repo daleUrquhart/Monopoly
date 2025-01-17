@@ -50,8 +50,11 @@ class GameController {
  
         view.setDicePane(bb.buildDice(game, view.getMainPane())); 
         view.getDicePane().setOnMouseClicked(e -> game.handleRoll(view, this));  
-
+ 
         // Start player building process
+        pb.initiatePlayerSetup();
+        pb.loadPlayersToGame(game); 
+
         // Set a listener for when the player setup is complete
         pb.setPlayerSetupListener(() -> {
             pb.loadPlayersToGame(game);
@@ -61,9 +64,6 @@ class GameController {
             view.displayCurrent(game.getCurrentPlayer(), this); 
             view.showDice();
         });
-
-        pb.initiatePlayerSetup();
-        pb.loadPlayersToGame(game); 
     } 
 
     /**
@@ -238,11 +238,13 @@ class GameController {
     }
 
     /**
-     * 
+     * Handles a jail turn
+     * @return Whether or not they were freed by doubles
      */
-    void handleJailTurn() {
+    boolean handleJailTurn() {
         List<Integer> choices = game.getValidJailChoices();
-        String message = getJailMessage();
+        String message = game.getJailMessage();
+        boolean freedByDoubles = false;
 
         // Display choices to the user via GameView
         Integer choice = view.showDialog(
@@ -255,7 +257,7 @@ class GameController {
 
         // Handle choice
         if (choice != null) {
-            boolean freedByDoubles = game.handleJailChoice(choice);
+            freedByDoubles = game.handleJailChoice(choice);
 
             if (freedByDoubles) {
                 GameView.showAlert("Success", "You rolled doubles! You are freed from jail.");
@@ -269,21 +271,6 @@ class GameController {
         } else {
             GameView.showAlert("No Action", "You did not take any action and remain in jail.");
         }
-    }
-
-    /**
-     * 
-     * @return
-     */
-    String getJailMessage() {
-        if (game.getCurrentPlayer().ownsJailCard()) {
-            return game.getCurrentPlayer().canAfford(game.getBail())
-                ? "Choose an option:\n1. Pay fine\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card"
-                : "Choose an option:\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card";
-        } else {
-            return game.getCurrentPlayer().canAfford(game.getBail())
-                ? "Choose an option:\n1. Pay fine\n2. Try for doubles"
-                : "You must try for doubles.";
-        }
+        return freedByDoubles;
     }
 }

@@ -13,6 +13,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 
+/**
+ * BoardBuilder manages construction of the board
+ */
 class BoardBuilder {
     
     /**
