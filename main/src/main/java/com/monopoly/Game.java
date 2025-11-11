@@ -426,17 +426,20 @@ public final class Game {
      * Handles a roll of the dice
      */
     void handleRoll(GameView view, GameController controller) {   
-        view.clearDispPane();
-        
+        MessagePane mp = view.getMessagePane();
+
+        mp.clearDispPane();
+        view.removeDice();
+
         // Make roll and assign the new location
         int roll = getDice().roll(getCurrentPlayer());  
         int newSpace = roll + current.getLocation().getId();
 
-        view.showMessage("You rolled a "+roll+"!");
+        mp.showMessage("You rolled a "+roll+"!");
 
         // Passed Go
         if(passedGo(newSpace)) {
-            view.showMessage("\nYou passed Go! Here is $200.");
+            mp.showMessage("\nYou passed Go! Here is $200.");
             newSpace -= getMap().length;
         }
 
@@ -446,10 +449,10 @@ public final class Game {
         // Handle Doubles logic 
         switch (handleDoubles()) {
             case -1:
-                view.showMessage("\nYou rolled doubles, you get to roll again after your turn! ");
+                mp.showMessage("\nYou rolled doubles, you get to roll again after your turn! ");
                 break; 
             case 1:
-                view.showMessage("\nThat was your third doubles, go to jail! ");
+                mp.showMessage("\nThat was your third doubles, go to jail! ");
                 break; 
             default:
                 break;
@@ -469,7 +472,7 @@ public final class Game {
         // Assign next player
         getNextPlayer();
         System.out.println("Got next player: "+current.getName());
-        view.displayCurrent(current, controller);
+        mp.displayCurrent(current, controller);
 
         // Is the next player in jail?
         if(current.inJail()) {

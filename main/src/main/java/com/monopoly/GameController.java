@@ -35,7 +35,7 @@ class GameController {
     GameController(Game game, GameView view) {
         this.game = game;
         this.view = view;
-        this.pb = new PlayerBuilder(view.getDispPane());
+        this.pb = new PlayerBuilder(view.getMessagePane());
     }
 
     /**
@@ -64,7 +64,7 @@ class GameController {
             System.out.println("Players loaded, continuing game setup...");
 
             // Proceed with the game setup after players are loaded 
-            view.displayCurrent(game.getCurrentPlayer(), this); 
+            view.getMessagePane().displayCurrent(game.getCurrentPlayer(), this); 
             view.showDice();
         });
     } 
@@ -110,23 +110,25 @@ class GameController {
             }
         }
 
+        MessagePane mp = view.getMessagePane();
+
         //Property sold by bank at auction to a player
         if(highestBidder instanceof Player && !(location.getOwner() instanceof Player)) {
-            view.showMessage("\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
+            mp.showMessage("\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
             highestBidder.buy(location, bid, game); 
         }
         //Player auctioning property off to other players
         else if(highestBidder instanceof Player && location.getOwner() instanceof Player) {
             if(GameView.getBoolInput("Auction", "The highest bid was "+bid, "Do you want to accept that amount, "+location.getOwner().getName()+", or keep the property? ")) {
-                view.showMessage("\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
+                mp.showMessage("\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
                 highestBidder.buy(location, bid, game); 
             } else {
-                view.showMessage("\nOwner disatisfied with acution, recants property. "); 
+                mp.showMessage("\nOwner disatisfied with acution, recants property. "); 
             }
         }
         //Property stays with the bank
         else {
-            view.showMessage("\nNo bids made, "+location.getName()+" stays with "+location.getOwner().getName()+". ");
+            mp.showMessage("\nNo bids made, "+location.getName()+" stays with "+location.getOwner().getName()+". ");
         } 
     }
 

@@ -79,6 +79,31 @@ Implement better UX (use side bar over popups for some events, etc.)
 
 Make Go a singleton? Go, FP, other special tiles
 
+Game flow UX improvements:
+pane is the component that represents right side, it is a GridPane
+GameView initialization adds pane to the right side of mainPane, will have to update pane creation to be the child of GridPane and give it a better name
+
+(GameView) view.showMessage is hwo a message is currently displayed.
+Maybe make right side message board its own object with a API for easily performning various recyclable displays liek purhcase aucction event etc.
+Example:
+MessageBoard view extends GridPane
+view.clear()
+view.addMessage(String message)
+view.initiateAuction()
+view.purchaseProperty(Property p)
+etc.
+
+Currently modified with GameView.showMessage
+    /**
+     * Adds a message ontop of currentPlayerDisplay
+     * @param message Message to be displayed
+     */
+    void showMessage(String message) {
+        pane.getChildren().clear();
+        currentPlayerDisplay.getChildren().add(0, new Label(message));
+        pane.add(currentPlayerDisplay, 0, 0); 
+        
+    }
 ---
 
 ## BugLog
@@ -90,6 +115,17 @@ Traces to setInitialLocation from Player constructor
 Fixed by updating Player.ID before setting initial location, was not causing issues on later tiles as the ID was updated after the initial palcement so it knew where to properly go afterwarrds
 
 #### Game crashes after player 2 goes for their first turn 
+Happaned again: 2 landed on ones spot, on 2's first turn
+Exception in thread "JavaFX Application Thread" java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 1
+        at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:100)
+        at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:106)
+        at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:302)
+        at java.base/java.util.Objects.checkIndex(Objects.java:365)
+        at java.base/java.util.ArrayList.get(ArrayList.java:428)
+        at com.monopoly/com.monopoly.Game.getNextPlayer(Game.java:189)
+        at com.monopoly/com.monopoly.Game.handleRoll(Game.java:473)
+        at com.monopoly/com.monopoly.GameController.lambda$startGame$0(GameController.java:54)
+
 They were on the same tile here, maybe that was the issue, can go several turn cycles most times
 Looks like players were lost and attempted to index the empty player list
         at java.base/java.util.ArrayList.get(ArrayList.java:428)

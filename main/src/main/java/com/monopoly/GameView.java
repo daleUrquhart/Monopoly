@@ -6,15 +6,11 @@ import java.util.Optional;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 public class GameView {
 
@@ -31,7 +27,7 @@ public class GameView {
     /**
      * Display pane (Space right of the board)
      */
-    private final GridPane pane;
+    private final MessagePane messagePane;
 
     /**
      * StackPane Center pane of the board holding dice or jail info
@@ -39,19 +35,13 @@ public class GameView {
     private StackPane centerPane;
 
     /**
-     * VBox Current Player display
-     */
-    private VBox currentPlayerDisplay;
-
-    /**
      * Sets up initial layout of the board 
      */
     GameView() {
         mainPane = new GridPane(); 
-        pane = new GridPane();
-        currentPlayerDisplay = new VBox();
+        messagePane = new MessagePane();
         
-        mainPane.add(pane, 11, 0, GridPane.REMAINING, GridPane.REMAINING);  
+        mainPane.add(messagePane, 11, 0, GridPane.REMAINING, GridPane.REMAINING);  
     } 
 
     /**
@@ -86,8 +76,8 @@ public class GameView {
      * Gets the Display Pane mainting all data to the right of the board
      * @return primary display pane
      */
-    GridPane getDispPane() {
-        return pane;
+    MessagePane getMessagePane() {
+        return messagePane;
     }
     
     /**
@@ -176,86 +166,6 @@ public class GameView {
     } 
 
     /**
-     * Displays the information on DispPane of main player
-     * @param p Current player
-     */
-    void displayCurrent(Player current, GameController controller) {
-        pane.getChildren().clear();
-        updateCurrentPlayerDislay(current, controller);
-        pane.add(currentPlayerDisplay, 0, 0); 
-    }
-
-    /**
-     * Gets the GUI Player display in a VBox
-     */
-    void updateCurrentPlayerDislay(Player current, GameController controller) {
-        VBox display = new VBox();
-        Label data = new Label(current.getName() + "'s turn\nBalance:" + current.getBalance() + "\n"); 
-        HBox pBox;
-        Button buyDevelopmentBoxB, mortgageB, unMortgageB, auctionB, privateSaleB, sellB, sellDevelopmentB; 
-
-        display.getChildren().addAll(data);
-        //display.getChildren().addAll(current.getPiece(), data); Try not adding piece to  view to see if it stays on board
-
-        // Lengthy button display logic (dont offer to mortage an already mortgaged property, etc.)
-        for(Property p : current.getProperties()) { 
-            buyDevelopmentBoxB = new Button("Buy Development");
-            buyDevelopmentBoxB.setOnMouseClicked(e -> p.buyDevelopment());
-
-            mortgageB = new Button("Mortgage property");
-            mortgageB.setOnMouseClicked(e -> p.mortgage());
-
-            unMortgageB = new Button("Un Mortgage");
-            unMortgageB.setOnMouseClicked(e -> p.unMortgage());
-
-            // The next two are handled with controller as it requires additional inputs
-            auctionB = new Button("Auction");
-            auctionB.setOnMouseClicked(e -> controller.handleAuction(p));
-
-            privateSaleB = new Button("Private Sale");
-            privateSaleB.setOnMouseClicked(e -> controller.handlePrivateSale(p));
-
-            sellB = new Button("Sell to Bank");
-            sellB.setOnMouseClicked(e -> current.sell(p));
-
-            sellDevelopmentB = new Button("Sell development");
-            sellDevelopmentB.setOnMouseClicked(e -> p.sellDevelopment());
-
-            pBox = new HBox();
-            pBox.getChildren().add(new Label(p.toString()));
-
-            if(!p.hasHotel() && current.canAfford(p.getDevelopmentCost())) {
-                pBox.getChildren().add(buyDevelopmentBoxB);
-            }
-            if(!p.developed()) {
-                if(!p.isMortgaged()) {
-                    pBox.getChildren().add(mortgageB);
-                }
-                pBox.getChildren().addAll(auctionB, privateSaleB); 
-            } else {
-
-            }
-            if(p.isMortgaged() && current.canAfford((int) (p.getMortgageValue() * 1.1))) {
-                pBox.getChildren().add(unMortgageB);
-            } 
-            display.getChildren().add(pBox);
-        } 
-        
-        currentPlayerDisplay = display;
-    }
-
-    /**
-     * Adds a message ontop of currentPlayerDisplay
-     * @param message Message to be displayed
-     */
-    void showMessage(String message) {
-        pane.getChildren().clear();
-        currentPlayerDisplay.getChildren().add(0, new Label(message));
-        pane.add(currentPlayerDisplay, 0, 0); 
-        
-    }
-
-    /**
      * Shows an alert
      * @param title Title of the alert
      * @param message Message of the alert
@@ -290,12 +200,7 @@ public class GameView {
         return result.orElse(null); // Return null if no selection was made
     }
 
-    /**
-     * Removes currentPlayerDisplay form DispPane
-     * Also clears dice off center
-     */
-    void clearDispPane() {
-        currentPlayerDisplay = new VBox(new Label(""));
+    void removeDice() {
         centerPane.getChildren().remove(dicePane); 
     }
 
