@@ -200,6 +200,9 @@ public class GameView {
         return result.orElse(null); // Return null if no selection was made
     }
 
+    /**
+     * Removes die form center pane
+     */
     void removeDice() {
         centerPane.getChildren().remove(dicePane); 
     }

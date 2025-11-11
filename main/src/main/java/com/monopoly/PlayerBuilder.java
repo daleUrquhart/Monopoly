@@ -13,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox; 
 import javafx.scene.layout.VBox;
  
@@ -31,8 +30,8 @@ public class PlayerBuilder {
     private Label label;
     private TextField field;
     private Button button;
-    private HBox inputBox;
-    private final GridPane pane;
+    private HBox inputBox; 
+    private final MessagePane mp;
     
     private int playerCount;
     private final ArrayList<String> takenNames;
@@ -45,8 +44,8 @@ public class PlayerBuilder {
      * @param game Game refrence
      * @param view GameView refrence
      */
-    public PlayerBuilder(GridPane pane) {  
-        this.pane = pane;
+    public PlayerBuilder(MessagePane mp) {  
+        this.mp = mp;
         
         takenNames = new ArrayList<>();
         availablePieces = buildPieces();
@@ -101,7 +100,7 @@ public class PlayerBuilder {
 
         field.setOnAction(e -> handlePlayerCountInput());
         button.setOnAction(e -> handlePlayerCountInput());
-        pane.add(inputBox, 0, 0); 
+        mp.add(inputBox, 0, 0); 
     }
 
     /**
@@ -115,7 +114,7 @@ public class PlayerBuilder {
                 label.setText("Invalid input! Enter a number between 2 and 4.");
             } else {
                 playerCount = count;
-                pane.getChildren().remove(inputBox);
+                mp.getChildren().remove(inputBox);
                 
                 buildNameInputUI();
             }
@@ -136,7 +135,7 @@ public class PlayerBuilder {
 
         field.setOnAction(e -> handleNameInput());
         button.setOnAction(e -> handleNameInput()); 
-        pane.add(inputBox, 0, 0);
+        mp.add(inputBox, 0, 0);
     } 
 
     /**
@@ -148,7 +147,7 @@ public class PlayerBuilder {
             label.setText("Invalid name! Try again.");
         } else {
             takenNames.add(name);
-            pane.getChildren().remove(inputBox); 
+            mp.getChildren().remove(inputBox); 
             buildPieceSelectionUI(name);
         }
     }
@@ -178,7 +177,7 @@ public class PlayerBuilder {
         }
 
         pieceBoxes.getChildren().addAll(label, row1, row2);
-        pane.add(pieceBoxes, 0, 1);
+        mp.add(pieceBoxes, 0, 1);
     }
 
     /**
@@ -189,7 +188,8 @@ public class PlayerBuilder {
         availablePieces.remove(pieceView.getImage());
         PlayerBuilder.resizePiece(pieceView, PIECE_DISPLAY_SIZE);
         takenPieces.add(pieceView);
-        pane.getChildren().clear();
+        mp.getChildren().clear(); // This was messing with removing message and player display, just manually adding them back here
+        mp.addDisplays();
         
 
         if (takenNames.size() < playerCount) {

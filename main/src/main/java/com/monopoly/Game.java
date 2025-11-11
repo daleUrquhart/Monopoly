@@ -427,8 +427,7 @@ public final class Game {
      */
     void handleRoll(GameView view, GameController controller) {   
         MessagePane mp = view.getMessagePane();
-
-        mp.clearDispPane();
+        mp.clearMessages();
         view.removeDice();
 
         // Make roll and assign the new location
@@ -436,6 +435,9 @@ public final class Game {
         int newSpace = roll + current.getLocation().getId();
 
         mp.showMessage("You rolled a "+roll+"!");
+        
+        mp.clearCurrentPlayerDisplay();
+        mp.updateCurrentPlayerDislay(current, controller);
 
         // Passed Go
         if(passedGo(newSpace)) {
@@ -470,9 +472,7 @@ public final class Game {
         }
 
         // Assign next player
-        getNextPlayer();
-        System.out.println("Got next player: "+current.getName());
-        mp.displayCurrent(current, controller);
+        getNextPlayer();  
 
         // Is the next player in jail?
         if(current.inJail()) {
@@ -481,6 +481,7 @@ public final class Game {
             }
             
         }
+        
         else view.showDice();
     }
 

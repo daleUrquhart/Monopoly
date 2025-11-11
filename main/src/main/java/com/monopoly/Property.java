@@ -206,6 +206,7 @@ public class Property extends BoardSpace{
 
     /**
      * Buys a development on the property
+     * Sets houses to 0, hotel to true
      */
     void buyDevelopment() {
         getOwner().adjustNetWorth((int) (getDevelopmentCost() / 2)); 

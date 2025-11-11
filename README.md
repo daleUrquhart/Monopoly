@@ -80,6 +80,26 @@ Implement better UX (use side bar over popups for some events, etc.)
 Make Go a singleton? Go, FP, other special tiles
 
 Game flow UX improvements:
+
+---
+
+## BugLog and implmentation notes
+### 2 Player Tests
+
+### Jail is broken
+
+### Making message flow display more intuitive
+Ok acks for CC and chance, etc. 
+Yes and no buttons for landing on a property purchase prompt
+We are clearing the pane in playerbuilding which is probably removing message and player displays from the thang
+
+### <Fixed> Delegate message display logic into ists own API to clean up GameView
+Addresssed, implemented new API, fixed property option logic aswell
+
+Not giving an opportunity to manage assets after a player rolls. I want after a player rolls they get a chnce to manage assets after buying a new property and then the next player can manage theuir assets once the dice are rolled again
+
+Maintaining the message pane properly has proven difficult, i feel like giving it its own class extending gridpane is the natural solution
+Notes for implementation:
 pane is the component that represents right side, it is a GridPane
 GameView initialization adds pane to the right side of mainPane, will have to update pane creation to be the child of GridPane and give it a better name
 
@@ -104,10 +124,7 @@ Currently modified with GameView.showMessage
         pane.add(currentPlayerDisplay, 0, 0); 
         
     }
----
 
-## BugLog
-### 2 Player Tests
 ### <Fixed> Player pieces not loading to respective corners
 Both pieces loading to top left of tile (Seems to be just for Go tile on player creation)
 Pieces overlap in first player's spot, likely done in Player constructor
