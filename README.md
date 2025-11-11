@@ -60,11 +60,11 @@ JavaFX
 
 | Feature | Screenshot |
 |---------|------------|
-| Start Page | ![Main Menu](resources/screenshots/main_menu.png) |
-| Chance Draw | ![Chance Draw](resources/screenshots/chance_draw.png) |
-| Mid Game | ![Mid game](resources/screenshots/mid_game.png) |
-| Buy Property | ![Buy property](resources/screenshots/buy_property.png) |
-| Buy Property With Insufficent Funds | ![Buy Property With Insufficent Funds](resources/screenshots/broke_buy_property.png) |
+| Start Page | ![Main Menu](main/src/main/resources/screenshots/main_menu.png) |
+| Chance Draw | ![Chance Draw](main/src/main/resources/screenshots/chance_draw.png) |
+| Mid Game | ![Mid game](main/src/main/resources/screenshots/mid_game.png) |
+| Buy Property | ![Buy property](main/src/main/resources/screenshots/buy_property.png) |
+| Buy Property With Insufficent Funds | ![Buy Property With Insufficent Funds](main/src/main/resources/screenshots/broke_buy_property.png) |
 
 ---
 
