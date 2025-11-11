@@ -179,10 +179,11 @@ public final class Game {
      * @return Player next player to play
      */
     Player getNextPlayer() { 
+        /*
         System.out.println("Player options for getting next player:");
         for(Player p : players) System.out.println(p); // TESTING
         System.out.println();
-        
+        */
         getCurrentPlayer().flipCurrent();
         turnIndex = increment(turnIndex);
         current = getPlayers().get(turnIndex);

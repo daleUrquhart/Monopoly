@@ -43,15 +43,18 @@ class GameController {
      */
     void startGame() { 
         // Builds board components
+        System.out.println("Placing tiles onto gameboard.");
         BoardBuilder bb = new BoardBuilder();  
         bb.buildTiles(game, view.getMainPane()); 
- 
         view.setCenterPane(bb.buildCenter(game, view.getMainPane())); 
- 
+        
+        // Builds and places dice grid onto center tile
+        System.out.println("Placing dice onto center.");
         view.setDicePane(bb.buildDice(game, view.getMainPane())); 
         view.getDicePane().setOnMouseClicked(e -> game.handleRoll(view, this));  
  
         // Start player building process
+        System.out.println("Beginging player building.");
         pb.initiatePlayerSetup();
         pb.loadPlayersToGame(game); 
 

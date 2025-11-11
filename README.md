@@ -77,12 +77,17 @@ Fix Auction flow
 
 Implement better UX (use side bar over popups for some events, etc.)
 
+Make Go a singleton? Go, FP, other special tiles
+
 ---
 
 ## BugLog
 ### 2 Player Tests
-### Player pieces not loading to respective corners
-Both pieces loading to top left of tile
+### <Fixed> Player pieces not loading to respective corners
+Both pieces loading to top left of tile (Seems to be just for Go tile on player creation)
+Pieces overlap in first player's spot, likely done in Player constructor
+Traces to setInitialLocation from Player constructor
+Fixed by updating Player.ID before setting initial location, was not causing issues on later tiles as the ID was updated after the initial palcement so it knew where to properly go afterwarrds
 
 #### Game crashes after player 2 goes for their first turn 
 They were on the same tile here, maybe that was the issue, can go several turn cycles most times

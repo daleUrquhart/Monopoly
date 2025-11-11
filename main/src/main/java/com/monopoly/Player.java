@@ -68,15 +68,16 @@ final class Player extends Entity {
      * Parametrized constructor for Player object
      * @param name Player's name
      */
-    Player(String name, Go location, ImageView piece) { 
+    Player(String name, Go location, ImageView piece) { // Do i need to pass go instance or is go a 'super instance' 
         super(name, 1500); 
         this.piece = piece;
+        ID = ID_COUNTER++;
         setInitialLocation(location);
         current = false;
         jailCardNum = 0;
         jail = false;
         jailTurns = 0;  
-        ID = ID_COUNTER++;
+        
     } 
 
     /**
