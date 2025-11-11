@@ -7,8 +7,6 @@
 
 package com.monopoly;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException; 
 import java.util.Random;
 
 import javafx.scene.image.Image;
@@ -23,7 +21,7 @@ final class Dice {
     /**
      * Path to resources directory
      */
-    private static final String PATH = "../resources/com/monopoly/";
+    private static final String PATH = "/com/monopoly/";
 
     /**
      * Random connection
@@ -59,10 +57,12 @@ final class Dice {
      * Default constructor for Dice
      */
     Dice(GridPane d) {
+        System.out.println("\tInitializing dice...");
         setDice();
         d1 = (ImageView) d.getChildren().get(0);
         d2 = (ImageView) d.getChildren().get(1);
         rand = new Random(); 
+        System.out.println("\tDice initialized");
     }
 
     /**
@@ -72,9 +72,9 @@ final class Dice {
         dice = new Image[7];
         for(int i = 1; i < 7; i++) {
             try {
-                dice[i-1] = new Image(new FileInputStream(PATH + i + "_die.png"));
-            } catch (FileNotFoundException e) {
-                System.err.println("Image "+i+" note found. \n"+e.toString());
+                dice[i-1] = new Image(getClass().getResourceAsStream(PATH + i + "_die.png"));
+            } catch (Exception e) {
+                System.err.println("Error building dice "+i+". Full message: \n"+e.toString());
             }
         }
     }

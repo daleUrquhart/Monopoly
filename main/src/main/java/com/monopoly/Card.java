@@ -5,8 +5,8 @@
 package com.monopoly;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList; 
 
 /**
@@ -272,10 +272,14 @@ class Card {
      * @return A list of Card objects loaded from the CSV file.
      * @throws IOException If there is an error reading the CSV file.
      */
-    static ArrayList<Card> getCCDeck(String filePath) throws IOException { 
+    static ArrayList<Card> getCCDeck(InputStream stream) throws IOException { 
         ArrayList<Card> ccDeck = new ArrayList<>();  
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        if(stream == null) {
+            System.out.println("Bad chance input stream");
+            return null;
+        }
+        try (BufferedReader br = new BufferedReader(new java.io.InputStreamReader(stream))) {
             String line;
             // Skip header line
             br.readLine();
@@ -326,10 +330,14 @@ class Card {
      * @return A list of Card objects loaded from the CSV file.
      * @throws IOException If there is an error reading the CSV file.
      */
-    static ArrayList<Card> getChanceDeck(String filePath) throws IOException {
+    static ArrayList<Card> getChanceDeck(InputStream stream) throws IOException {
         ArrayList<Card> chanceDeck = new ArrayList<>();  
+        if(stream == null) {
+            System.out.println("Bad chance input stream");
+            return null;
+        }
+        try (BufferedReader br = new BufferedReader(new java.io.InputStreamReader(stream))) {
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             // Skip header line
             br.readLine();
@@ -365,10 +373,13 @@ class Card {
                     if(card.isChance()) {chanceDeck.add(card);}  
                     
                 } catch (NumberFormatException e) {
-                    System.err.println("Error parsing line: " + line + " - " + e.getMessage());
+                    System.out.println("Error parsing line: " + line + " - " + e.getMessage());
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    System.err.println("Array index error with line: " + line + " - " + e.getMessage());
+                    System.out.println("Array index error with line: " + line + " - " + e.getMessage());
+                } catch (Exception e) {
+                    System.out.println("Uncaught exception in building chance deck: \n" + e.getMessage());
                 }
+
             }
         }   
 

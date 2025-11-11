@@ -19,6 +19,11 @@ import java.util.Random;
 final class CardManager extends BoardSpace {
 
     /**
+     * Path to resources
+     */
+    private static final String PATH = "/com/monopoly/";
+
+    /**
      * Deck
      */
     private List<Card> deck;
@@ -51,7 +56,8 @@ final class CardManager extends BoardSpace {
      */
     Card draw(Game game) {
         if(deck.isEmpty()) {
-            try {deck = chance ? Card.getChanceDeck("cards.csv") : Card.getCCDeck("cards.csv");}
+            try {deck = chance ? Card.getChanceDeck(getClass().getResourceAsStream(PATH + "cards.csv")) : 
+                                 Card.getCCDeck(getClass().getResourceAsStream(PATH + "cards.csv"));}
             catch(IOException e) {System.out.println("Only bad programmers get errors, and Dale Urquhart wrote this code!");}
         }
 

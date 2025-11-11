@@ -20,18 +20,20 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         Game game = new Game();
-        System.out.println("Game built");
+        System.out.println("GAME INITIALIZED\n\n");
+        
         GameView view = new GameView();
-        System.out.println("GameView built");
+        System.out.println("GAMEVIEW INITIALIZED\n\n");
+
         GameController controller = new GameController(game, view);
-        System.out.println("GameController built");
+        System.out.println("GAMECONTROLLER INITIALIZED\n\n");
 
         Scene scene = view.getScene();
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
 
-        System.out.println("Starting game");
+        System.out.println("STARTING GAME\n\n");
         try{
             controller.startGame(); 
         } catch(Exception e) {

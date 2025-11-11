@@ -4,8 +4,7 @@
  */
 package com.monopoly;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,7 @@ public class PlayerBuilder {
     
     private static final int PIECE_SELECT_SIZE = 60;
     private static final int PIECE_DISPLAY_SIZE = 35;
-    private static final String PATH = "../resources/com/monopoly/"; 
+    private static final String PATH = "/com/monopoly/"; 
 
     private PlayerSetupListener listener;
 
@@ -68,16 +67,27 @@ public class PlayerBuilder {
      */
     private ArrayList<Image> buildPieces() {
         ArrayList<Image> pieces = new ArrayList<>();
-        try {
-            for (int i = 0; i < 8; i++) {
-                FileInputStream in = new FileInputStream(PATH + i + "_piece.png");
+
+        for (int i = 0; i < 8; i++) {
+            String resourcePath = PATH + i + "_piece.png";
+            
+            try (InputStream in = getClass().getResourceAsStream(resourcePath)) {
+
+                if (in == null) {
+                    System.err.println("Missing piece resource: " + resourcePath);
+                    continue;
+                }
+
                 pieces.add(new Image(in));
+
+            } catch (Exception e) {
+                System.err.println("Error loading piece: " + resourcePath);
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("Error loading game pieces: " + e.getMessage());
         }
+
         return pieces;
     }
+
 
     /**
      * Displays input for player count, waits for player to submit before proceeding

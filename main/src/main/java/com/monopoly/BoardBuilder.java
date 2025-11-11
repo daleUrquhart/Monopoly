@@ -3,8 +3,6 @@
  */
 package com.monopoly;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import javafx.geometry.Pos;
@@ -21,7 +19,7 @@ class BoardBuilder {
     /**
      * Path to resources directory
      */
-    private static final String PATH = "../resources/com/monopoly/";
+    private static final String PATH = "/com/monopoly/";
 
     /**
      * Scale for the board sizing
@@ -42,63 +40,74 @@ class BoardBuilder {
     /**
      * Builds the map destinations iteravely using indexed filenames
      */ 
-     void buildTiles(Game game, GridPane pane) {
-        int count = -1; 
-        int col = 10, row = 10;  
+    void buildTiles(Game game, GridPane pane) { 
+        int count = -1;
+        int col = 10;
+        int row = 10;
 
-        try {
-            for(int i = 0; i < 40; i++) {   
-                InputStream inputStream = new FileInputStream(PATH+col+"_"+row+".png");
+        for (int i = 0; i < 40; i++) {
+            String fileName = col + "_" + row + ".png";
+            String resourcePath = PATH + fileName;
+
+            try (InputStream inputStream = getClass().getResourceAsStream(resourcePath)) {
+
+                if (inputStream == null) {
+                    System.out.println("Tile image missing: " + resourcePath);
+                    continue;
+                }
+
                 Image image = new Image(inputStream);
-                ImageView imageView = new ImageView();   
+                ImageView imageView = new ImageView(image);
 
                 count++;
-                imageView.setImage(image); 
 
-                if(col == 0 || col == 10) {
-                    if(row == 0 || row == 10) {
+                if (col == 0 || col == 10) {
+                    if (row == 0 || row == 10) {
                         imageView.setFitHeight(SCALE * SQ);
                         imageView.setFitWidth(SCALE * SQ);
-                    }
-                    else {
+                    } else {
                         imageView.setFitHeight(SCALE * MID);
                         imageView.setFitWidth(SCALE * SQ);
-                    }                        
-                }
-                else {
+                    }
+                } else {
                     imageView.setFitHeight(SCALE * SQ);
                     imageView.setFitWidth(SCALE * MID);
-                } 
-                
-                game.getMap()[count].setTile(imageView);
-                pane.add(game.getSpace(count).getStack(), col, row);  
+                }
 
-                if (col == 10 && row < 10) row++;
-                else if (col == 0 && row > 0) row--;
-                else if (row == 10 && col > 0) col--;
-                else if (row == 0 && col < 10) col++;
-            } 
-        } catch (FileNotFoundException e) {
-            System.out.println("Aint no thang");
-        } catch (Exception e) {
-            System.out.println("Bad code idiot");
-            throw(e);
+                game.getMap()[count].setTile(imageView);
+                pane.add(game.getSpace(count).getStack(), col, row);
+
+                if (col == 10 && row < 10) {
+                    row++;
+                } else if (col == 0 && row > 0) {
+                    row--;
+                } else if (row == 10 && col > 0) {
+                    col--;
+                } else if (row == 0 && col < 10) {
+                    col++;
+                }
+
+            } catch (Exception e) {
+                System.out.println("Uncaught exception in buildTiles for: " + resourcePath); 
+            }
         }
     }
+
 
     /**
      * Builds the dice 
      */
     GridPane buildDice(Game game, GridPane pane) {
-        GridPane dicePane = new GridPane();
+        GridPane dicePane = new GridPane(); 
+ 
         try {
-            InputStream d1Stream = new FileInputStream(PATH + "6_die.png");
+            InputStream d1Stream =  getClass().getResourceAsStream(PATH + "6_die.png");
             Image d1 = new Image(d1Stream);
             ImageView d1View = new ImageView(d1);
             d1View.setFitHeight(MID * SCALE);
             d1View.setFitWidth(MID * SCALE);
 
-            InputStream d2Stream = new FileInputStream(PATH + "6_die.png");
+            InputStream d2Stream = getClass().getResourceAsStream(PATH + "6_die.png");
             Image d2 = new Image(d2Stream);
             ImageView d2View = new ImageView(d2);
             d2View.setFitHeight(MID * SCALE);
@@ -111,8 +120,8 @@ class BoardBuilder {
             dicePane.setHgap(10);
             dicePane.setAlignment(Pos.CENTER); 
             game.setDice(new Dice(dicePane)); 
-        } catch(FileNotFoundException e) {
-            System.err.println("Dice piece not found in BoardBuilder. Full message:\n"+e);
+        } catch(Exception e) {
+            System.out.println("Dice piece not found in BoardBuilder. Full message:\n"+e);
         }
         return dicePane;
     }
@@ -124,7 +133,7 @@ class BoardBuilder {
         StackPane center = new StackPane();
         try {
             // Center tile 
-            InputStream boardStream = new FileInputStream(PATH + "center_tile.png");
+            InputStream boardStream = getClass().getResourceAsStream(PATH + "center_tile.png");
             Image board = new Image(boardStream);
             ImageView boardView = new ImageView(board);
             boardView.setFitHeight(9 * MID * SCALE);
@@ -136,8 +145,8 @@ class BoardBuilder {
             
             // Add to main grid
             pane.add(center, 1, 1, 9, 9);
-        } catch(FileNotFoundException e) {
-            System.err.println("Game piece not found in BoardBuilder. Full message:\n"+e);
+        } catch(Exception e) {
+            System.out.println("Error building center in BoardBuilder. Full message:\n"+e);
         } 
         return center;
     }

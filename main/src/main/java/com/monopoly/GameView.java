@@ -250,7 +250,7 @@ public class GameView {
      */
     void showMessage(String message) {
         pane.getChildren().clear();
-        currentPlayerDisplay.getChildren().addFirst(new Label(message));
+        currentPlayerDisplay.getChildren().add(0, new Label(message));
         pane.add(currentPlayerDisplay, 0, 0); 
         
     }

@@ -5,10 +5,11 @@
  
 package com.monopoly;
 
-import java.io.BufferedReader; 
-import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList; 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,7 +20,8 @@ public final class Game {
     /**
      * Path to resources
      */
-    private static final String PATH = "../resources/com/monopoly/";
+    private static final String PATH = "/com/monopoly/";
+
 
     /**
      * Bail amount
@@ -39,7 +41,7 @@ public final class Game {
     /**
      * Array of the players in the game
      */
-    private ArrayList<Player> players;
+    private final ArrayList<Player> players;
 
     /**
      * Index of Player in players for whose turn it is
@@ -69,17 +71,21 @@ public final class Game {
 
     /**
      * Game constructor
+     * Builds Chance and CC decks then builds game map
      */
     Game(){ 
-        turnIndex = 0;  
-        players = new ArrayList<> (); 
+        turnIndex = 0;   
         players = new ArrayList<>();
         
+        System.out.println("\tInitiating buildDecks()...");
         List<List<Card>> decks = buildDecks();
+        System.out.println("\tGame decks built...");
         chanceDeck = decks.get(0);
-        cCDeck = decks.get(0);  
+        cCDeck = decks.get(1);  
 
-        map = buildMap(); 
+        System.out.println("\tInitiating buildMap()...");
+        map = buildMap();
+        System.out.println("\tGame map built");
     }
 
     /**
@@ -172,7 +178,11 @@ public final class Game {
      * Gets the next player and increments turn index, returns null if there is only one non-bankrupt player left
      * @return Player next player to play
      */
-    Player getNextPlayer() {  
+    Player getNextPlayer() { 
+        System.out.println("Player options for getting next player:");
+        for(Player p : players) System.out.println(p); // TESTING
+        System.out.println();
+        
         getCurrentPlayer().flipCurrent();
         turnIndex = increment(turnIndex);
         current = getPlayers().get(turnIndex);
@@ -223,13 +233,18 @@ public final class Game {
      */
     List<List<Card>> buildDecks() {
         List<List<Card>> decks = new ArrayList<>(2);
-        try {
-            decks.add(Card.getChanceDeck(PATH + "cards.csv"));
-            decks.add(Card.getCCDeck(PATH + "cards.csv"));
+        try { 
+            List<Card> chance = Card.getChanceDeck(getClass().getResourceAsStream(PATH + "cards.csv"));
+            decks.add(chance);
+            System.out.println("\t\tChance deck built");
+
+            decks.add(Card.getCCDeck(getClass().getResourceAsStream(PATH + "cards.csv")));
+            System.out.println("\t\tCC deck built");
+
             return decks;
         } catch (IOException e) {
-            System.out.println("Come on, idiot. Give me a good csv");
-            return new ArrayList<>(2);
+            System.out.println("Error opening game data CSVs in deck building.");
+            return null;
         }
     }
  
@@ -238,7 +253,8 @@ public final class Game {
      */
     BoardSpace[] buildMap() {
         map = new BoardSpace[40]; 
-        try (BufferedReader br = new BufferedReader(new FileReader(PATH+"properties.csv"))) { 
+        try (InputStream in = getClass().getResourceAsStream(PATH + "properties.csv");
+                BufferedReader br = new BufferedReader(new InputStreamReader(in));) { 
             String line;
             Banker banker = Banker.getInstance();
 
@@ -295,9 +311,9 @@ public final class Game {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Bad csv, idiot"); 
+            System.out.println("Error opening game map CSV"); 
         } catch (Exception e) {
-            System.out.println("Are you even reading this thing? or just guessing?");
+            System.out.println("Uncaught exception in building game map");
             throw(e);
         }
         return map;
