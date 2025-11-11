@@ -193,6 +193,7 @@ class GameController {
      * Handles the turn of landing on an unwoned property
      */
     void handleUnownedProperty() { 
+        MessagePane mp = view.getMessagePane();
         Player current = game.getCurrentPlayer();
         Property property = (Property) current.getLocation();
         
@@ -212,7 +213,7 @@ class GameController {
         }
         // The player can not afford the property
         else {
-            GameView.showAlert("\nThis property is not owned yet!", "You can not afford this property though, and it will be going up for auction. ");
+            mp.showMessage("\nThis property is not owned yet!\nYou can not afford this property though, and it will be going up for auction. ");
         }
         if(!current.equals(property.getOwner())) handleAuction(property);
     }
@@ -224,22 +225,23 @@ class GameController {
         Player current = game.getCurrentPlayer();
         Property property = (Property) current.getLocation();
         Entity owner = property.getOwner();
-        
+        MessagePane mp = view.getMessagePane();
+
         if (!owner.equals(current)) {
             // Can not afford the rent
             if (!current.canAfford(property.getRent())) {
-                GameView.showAlert("\nBreaking! " + current.getName() + " bankrupted by: " + owner.getName() + "! ", "");
+                mp.showMessage("\nBreaking! " + current.getName() + " bankrupted by: " + owner.getName() + "! ");
                 if(game.getPlayerCount() != 2) current.bankrupted(owner, game);  
                 else game.removePlayer(current);
             }
             // Can afford the rent
             else {
                 property.chargeRent(current);
-                GameView.showAlert("\n"+current.getName() + " landed on " + owner.getName() + "'s property", "The rent owed to them is $" + property.getRent() + ".");
+                mp.showMessage("\n"+current.getName() + " landed on " + owner.getName() + "'s property\nThe rent owed to them is $" + property.getRent() + ".");
             }
         }
         // If we own the property, do nothing
-        else GameView.showAlert("\nYou are at " + property.getName(), "And you own it already."); 
+        mp.showMessage("\nYou are at " + property.getName() + ", and you own it already."); 
     }
 
     /**

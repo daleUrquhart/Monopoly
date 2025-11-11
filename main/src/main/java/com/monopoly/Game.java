@@ -436,6 +436,7 @@ public final class Game {
 
         mp.showMessage("You rolled a "+roll+"!");
         
+        // Show new player's data
         mp.clearCurrentPlayerDisplay();
         mp.updateCurrentPlayerDislay(current, controller);
 
