@@ -68,27 +68,31 @@ JavaFX
 
 ---
 
-## Devnotes
-in Game.Game() line 79, chance and cc decks both pull from decks[0], that sounds bad
-
-Initialize dice in the Game init? 
-
-Fix Auction flow
+## Devnotes 
+Initialize dice in the Game init?  
 
 Implement better UX (use side bar over popups for some events, etc.)
 
 Make Go a singleton? Go, FP, other special tiles
 
-Game flow UX improvements:
+Game flow UX improvements
 
 ---
 
 ## BugLog and implmentation notes
 ### 2 Player Tests
 
-### Jail is broken
+### Bad implementation of jail
+Game crashes and behaves poorly on jail actions
 
-### Making message flow display more intuitive
+### <Fixed> Illegal dice rolls allowed, poor display of properties after purchasing a new one
+- Fix worked as expected
+- Will also make the small fix of displaying a newly purchased property after submission of purchase before new roll by reloading player display after purchase
+- Proposed solution works, dice only roll when expected now
+- It is possible for dice rolls to be done during a turn action, look at fixing by disabling dice until it is ready
+
+
+### <Fixed> Making message flow display more intuitive
 Auction and property purchase done, required additions to Message pane and abstracting Auction logic. Alot of changes here will make this a sub-commit to solving this problem
 
 Ok acks for CC and chance, etc. 

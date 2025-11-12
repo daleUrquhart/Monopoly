@@ -465,8 +465,7 @@ public final class Game {
         if(current.inJail()) {
             if(controller.handleJailTurn()) {
                 view.showDice();
-            }
-            
+            } 
         }
         
         else view.showDice();

@@ -27,6 +27,11 @@ class GameController {
     private final PlayerBuilder pb;
 
     /**
+     * Enabled once turn actions are all resolved
+     */
+    private Boolean rollEnabled;
+
+    /**
      * Constructor for the controller
      * 
      * @param game Game instance
@@ -35,6 +40,7 @@ class GameController {
     GameController(Game game, GameView view) {
         this.game = game;
         this.view = view;
+        this.rollEnabled = true;
         this.pb = new PlayerBuilder(view.getMessagePane());
     }
 
@@ -51,7 +57,12 @@ class GameController {
         // Builds and places dice grid onto center tile
         System.out.println("Placing dice onto center.");
         view.setDicePane(bb.buildDice(game, view.getMainPane())); 
-        view.getDicePane().setOnMouseClicked(e -> game.handleRoll(view, this));  
+        view.getDicePane().setOnMouseClicked(e -> {
+            if(rollEnabled) {
+                game.handleRoll(view, this);
+                rollEnabled = false;
+            }
+        });  
  
         // Start player building process
         System.out.println("Beginging player building.");
@@ -131,6 +142,7 @@ class GameController {
         } else {
             view.getMessagePane().showMessage("No one bid. Property remains unsold.");
         }
+        rollEnabled = true;
     }
 
 
@@ -198,12 +210,18 @@ class GameController {
         MessagePane mp = view.getMessagePane();
         Player current = game.getCurrentPlayer();
         Property property = (Property) current.getLocation();
-        
+        rollEnabled = false;
+
         // If player can afford the property
         if(current.canAfford(property.getPrice())) { 
             mp.getBoolInput("Property", property.getName()+" is not owned yet.", "Would you like to buy it?",
                     result -> {
-                        if(result) current.buy(property);
+                        if(result) {
+                            current.buy(property);
+                            rollEnabled = true;
+                            mp.clearCurrentPlayerDisplay();
+                            mp.displayCurrent(current, this);
+                        }
                         else handleAuction(property);
                     }
             );
@@ -219,6 +237,7 @@ class GameController {
                     if (result) {
                         current.liquidate(property.getPrice(), game);
                         current.buy(property);
+                        rollEnabled = true;
                     } else handleAuction(property);
                 }
             );
@@ -227,6 +246,7 @@ class GameController {
         // The player can not afford the property
         else {
             mp.showMessage("\nThis property is not owned yet!\nYou can not afford this property though, and it will be going up for auction. ");
+            rollEnabled = true;
         }
     }
 
@@ -264,6 +284,7 @@ class GameController {
         List<Integer> choices = game.getValidJailChoices();
         String message = game.getJailMessage();
         boolean freedByDoubles = false;
+        MessagePane mp = view.getMessagePane();
 
         // Display choices to the user via GameView
         Integer choice = view.showDialog(
@@ -279,16 +300,16 @@ class GameController {
             freedByDoubles = game.handleJailChoice(choice);
 
             if (freedByDoubles) {
-                GameView.showAlert("Success", "You rolled doubles! You are freed from jail.");
+                mp.showMessage("Success, you rolled doubles! You are freed from jail.");
             } else {
                 switch (choice) {
-                    case 1: GameView.showAlert("Success", "You paid the fine and got out of jail.");
-                    case 3: GameView.showAlert("Success", "You used a 'Get Out of Jail Free' card!");
-                    case 2: GameView.showAlert("Failed", "You did not roll doubles. Jail turn incremented.");
+                    case 1: mp.showMessage("Success, you paid the fine and got out of jail.");
+                    case 3: mp.showMessage("Success, you used a 'Get Out of Jail Free' card!");
+                    case 2: mp.showMessage("Failed, you did not roll doubles. Jail turn incremented.");
                 }
             }
         } else {
-            GameView.showAlert("No Action", "You did not take any action and remain in jail.");
+            mp.showMessage("No Action, you did not take any action and remain in jail.");
         }
         return freedByDoubles;
     }
