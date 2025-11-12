@@ -1,7 +1,14 @@
 package com.monopoly;
 
+import java.util.function.Consumer;
+
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -36,17 +43,7 @@ public class MessagePane extends GridPane {
      */
     void clearMessages() {
         messageDisplay.getChildren().clear();
-    }
-
-    /**
-     * Clears all text from message board
-     * Empties the messagePane and currentPlayerDisplay 
-     
-    void clearDispPane() { 
-        messageDisplay.getChildren().clear();
-        currentPlayerDisplay.getChildren().clear();
     } 
-    */
 
     /**
      * Displays the information on DispPane of main player below any messages pertaining to current turn
@@ -76,6 +73,112 @@ public class MessagePane extends GridPane {
         messageDisplay.getChildren().add(new Label(message));  
     } 
     
+    /**
+     * Displays a yes/no question inline using radio buttons instead of a popup.
+     * Blocks further input until submitted, then calls the provided callback.
+     *
+     * @param pane GridPane to attach to
+     * @param title Title/label for the prompt
+     * @param header Optional header or question text
+     * @param context Context text explaining the choice
+     * @param callback Code to execute with the result (true for yes, false for no)
+     */
+    void getIntInput(String title, String header, String context, int min, int max, Consumer<Integer> callback) {
+        // Title + context display
+        Label question = new Label(title + "\n" + header + "\n" + context);
+        question.setWrapText(true);
+
+        // Text field and submit button
+        TextField tf = new TextField();
+        tf.setPromptText("Enter a number between " + min + " and " + max);
+
+        Button submit = new Button("Submit");
+
+        // Horizontal layout for field + button
+        HBox inputBox = new HBox(10, tf, submit);
+        inputBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Vertical layout container
+        VBox container = new VBox(10, question, inputBox);
+        container.setAlignment(Pos.CENTER_LEFT);
+
+        // Add to pane (GridPane child container)
+        messageDisplay.getChildren().add(container);
+
+        // Handle user submission
+        submit.setOnAction(e -> {
+            try {
+                int value = Integer.parseInt(tf.getText().trim());
+
+                if (value < min || value > max) {
+                    question.setText(
+                        "Value must be between " + min + " and " + max + ". Try again."
+                    );
+                    return;
+                }
+
+                // Clean up the UI
+                messageDisplay.getChildren().remove(container);
+
+                // Send result to the callback
+                callback.accept(value);
+
+            } catch (NumberFormatException ex) {
+                question.setText("Please enter a valid integer between " + min + " and " + max + ".");
+            } catch (Exception ex) {
+                question.setText("Unexpected error: " + ex.getMessage());
+            }
+        });
+    }
+
+
+    /**
+     * Displays a yes/no question inline using radio buttons instead of a popup.
+     * Blocks further input until submitted, then calls the provided callback.
+     *
+     * @param pane GridPane to attach to
+     * @param title Title/label for the prompt
+     * @param header Optional header or question text
+     * @param context Context text explaining the choice
+     * @param callback Code to execute with the result (true for yes, false for no)
+     */
+    void getBoolInput(String title, String header, String context, Consumer<Boolean> callback) {
+        // Create question label
+        Label question = new Label(title + "\n" + header + "\n" + context);
+        question.setWrapText(true);
+
+        // Create radio buttons
+        RadioButton yes = new RadioButton("Yes");
+        RadioButton no = new RadioButton("No");
+        ToggleGroup toggle = new ToggleGroup();
+        yes.setToggleGroup(toggle);
+        no.setToggleGroup(toggle);
+
+        // Create submit button
+        Button submit = new Button("Submit");
+
+        // Layout in an HBox
+        HBox options = new HBox(10, yes, no, submit);
+        VBox container = new VBox(10, question, options);
+
+        // Add to pane (adjust grid position as needed)
+        messageDisplay.getChildren().add(container);
+
+        // Handle submission
+        submit.setOnAction(e -> {
+            Toggle selected = toggle.getSelectedToggle();
+            if (selected == null) {
+                question.setText("Please select an option before submitting.");
+                return;
+            }
+
+            boolean result = (selected == yes);
+            messageDisplay.getChildren().remove(container);
+            callback.accept(result);
+        });
+    }
+
+
     /**
      * Gets the GUI Player display in a VBox
      */

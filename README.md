@@ -89,6 +89,8 @@ Game flow UX improvements:
 ### Jail is broken
 
 ### Making message flow display more intuitive
+Auction and property purchase done, required additions to Message pane and abstracting Auction logic. Alot of changes here will make this a sub-commit to solving this problem
+
 Ok acks for CC and chance, etc. 
 Yes and no buttons for landing on a property purchase prompt
 We are clearing the pane in playerbuilding which is probably removing message and player displays from the thang

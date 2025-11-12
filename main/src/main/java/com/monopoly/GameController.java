@@ -69,68 +69,70 @@ class GameController {
         });
     } 
 
+    void handleAuction(Property property) {
+        List<Player> bidders = game.getPlayers(); 
+        Auction auction = new Auction(property, bidders);
+        startAuction(auction, 0);
+    }
+
     /**
      * Handles an auctoin action selection from the current player
      */
-    void handleAuction(Property location) { 
-        int bid = 1, passedTurns = 0, turn = game.increment(game.getTurnIndex()), attempt;
-        boolean open = true, yes;
-        Player bidder = game.getPlayer(turn); 
-        Entity highestBidder = location.getOwner(); 
-
-        //Per player:
-        while(open) {
-            yes = false;
-
-            //Do you want to bid?
-            if(bid < bidder.getBalance() && !bidder.equals(location.getOwner())) {
-                yes = GameView.getBoolInput("Auction", 
-                                            bidder.getName()+", "+location.getName()+" is up for auction, would you like to make a bid?", 
-                                            "The current bid is at $"+bid);
-            }
-
-            //Yes?
-            if(yes) {
-                passedTurns = 0;  
-                attempt = GameView.getIntInput("Bid",
-                                                    "Current Bid: " + bid + ", enter a value higher than the current bid to take the lead in the auction, or current bid amount to cancel your bid attempt",
-                                                    "Current highest bidder is "+highestBidder.getName(),
-                                                    bid,
-                                                    bidder.getBalance());
-                if (attempt > bid) highestBidder = bidder;
-            }
-
-            if(passedTurns == game.getPlayerCount()) {
-                //Auction concluded
-                open = false;
-            } else {
-                //Assign next bidder
-                turn = game.increment(turn);
-                bidder = game.getPlayer(turn);
-            }
-        }
-
+    void startAuction(Auction auction, int playerIndex) {
+        Player current = auction.getBidders().get(playerIndex);
         MessagePane mp = view.getMessagePane();
 
-        //Property sold by bank at auction to a player
-        if(highestBidder instanceof Player && !(location.getOwner() instanceof Player)) {
-            mp.showMessage("\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
-            highestBidder.buy(location, bid, game); 
-        }
-        //Player auctioning property off to other players
-        else if(highestBidder instanceof Player && location.getOwner() instanceof Player) {
-            if(GameView.getBoolInput("Auction", "The highest bid was "+bid, "Do you want to accept that amount, "+location.getOwner().getName()+", or keep the property? ")) {
-                mp.showMessage("\nBidding has concluded, "+highestBidder.getName()+" has won the property "+location.getName()+" with a bid of $"+bid+".");
-                highestBidder.buy(location, bid, game); 
-            } else {
-                mp.showMessage("\nOwner disatisfied with acution, recants property. "); 
+        mp.getBoolInput(
+            "Auction",
+            current.getName() + ", bid on " + auction.getProperty().getName() + "?",
+            "Current bid is $" + auction.getHighestBid(),
+            wantsToBid -> {
+                if (wantsToBid) {
+                    mp.getIntInput(
+                        "Enter Bid",
+                        "Bid higher than current $" + auction.getHighestBid(),
+                        "Your balance: $" + current.getBalance(),
+                        auction.getHighestBid(),
+                        current.getBalance(),
+                        bid -> {
+                            auction.placeBid(current, bid);
+                            nextBidder(auction, playerIndex + 1);
+                        }
+                    );
+                } else {
+                    nextBidder(auction, playerIndex + 1);
+                }
             }
-        }
-        //Property stays with the bank
-        else {
-            mp.showMessage("\nNo bids made, "+location.getName()+" stays with "+location.getOwner().getName()+". ");
-        } 
+        );
     }
+
+    /**
+     * Handle next bidder 
+     */
+    void nextBidder(Auction auction, int nextIndex) {
+        if (nextIndex >= auction.getBidders().size()) {
+            concludeAuction(auction);
+        } else {
+            startAuction(auction, nextIndex);
+        }
+    }
+
+    /**
+     * End of auction
+     */
+    void concludeAuction(Auction auction) {
+        Player winner = auction.getHighestBidder();
+        if (winner != null) {
+            view.getMessagePane().showMessage(
+                winner.getName() + " wins " + auction.getProperty().getName() +
+                " for $" + auction.getHighestBid()
+            );
+            winner.buy(auction.getProperty(), auction.getHighestBid(), game);
+        } else {
+            view.getMessagePane().showMessage("No one bid. Property remains unsold.");
+        }
+    }
+
 
     /**
      * Handles a private sale action from the current player
@@ -199,23 +201,33 @@ class GameController {
         
         // If player can afford the property
         if(current.canAfford(property.getPrice())) { 
-            if (GameView.getBoolInput("Property", property.getName()+" is not owned yet.", "Would you like to buy it?")) {
-                current.buy(property); 
-            }
+            mp.getBoolInput("Property", property.getName()+" is not owned yet.", "Would you like to buy it?",
+                    result -> {
+                        if(result) current.buy(property);
+                        else handleAuction(property);
+                    }
+            );
         }
 
         // If the player has the net worth to afford the property
-        else if(current.getNetWorth() >= property.getPrice()) {
-            if (GameView.getBoolInput("Property", property.getName()+" is not owned yet.", "In order to purchase this property though, you will have to sell off assets. Would you like to buy it?")) {
-                current.liquidate(property.getPrice(), game);
-                current.buy(property); 
-            }
+        else if (current.getNetWorth() >= property.getPrice()) {
+            mp.getBoolInput(
+                "Property",
+                property.getName() + " is not owned yet.",
+                "In order to purchase this property though, you will have to sell off assets. Would you like to buy it?",
+                result -> {
+                    if (result) {
+                        current.liquidate(property.getPrice(), game);
+                        current.buy(property);
+                    } else handleAuction(property);
+                }
+            );
         }
+
         // The player can not afford the property
         else {
             mp.showMessage("\nThis property is not owned yet!\nYou can not afford this property though, and it will be going up for auction. ");
         }
-        if(!current.equals(property.getOwner())) handleAuction(property);
     }
 
     /**

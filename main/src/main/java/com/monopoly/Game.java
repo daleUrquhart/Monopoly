@@ -156,16 +156,7 @@ public final class Game {
      */
     int getTurnIndex() {
         return turnIndex;
-    }
-
-    /**
-     * Returns the indexed player from players
-     * @param i index of the player
-     * @return the player indexed
-     */
-    Player getPlayer(int i) {
-        return players.get(i);
-    }
+    } 
 
     /**
      * Gets the Go space
@@ -178,12 +169,7 @@ public final class Game {
      * Gets the next player and increments turn index, returns null if there is only one non-bankrupt player left
      * @return Player next player to play
      */
-    Player getNextPlayer() { 
-        /*
-        System.out.println("Player options for getting next player:");
-        for(Player p : players) System.out.println(p); // TESTING
-        System.out.println();
-        */
+    Player getNextPlayer() {  
         getCurrentPlayer().flipCurrent();
         turnIndex = increment(turnIndex);
         current = getPlayers().get(turnIndex);
