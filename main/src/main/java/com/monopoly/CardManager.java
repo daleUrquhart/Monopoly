@@ -79,7 +79,7 @@ final class CardManager extends BoardSpace {
         if(card.isGoToJail())       game.getJail().addPlayer(p);
         if(card.isAdvanceBy())      {
             p.setLocation(game.getSpace(p.getLocation().getId() + card.getSteps()));
-            game.isProperty();
+            game.isProperty(); // Idk why these game.isProperty() lines are here, but just gonna leave them
         }
         if(card.isAdvanceTo())      {
             int starting = p.getLocation().getId();

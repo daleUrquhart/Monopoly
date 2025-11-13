@@ -147,18 +147,21 @@ class Entity {
     * @param newProperty the property to buy
     * @param bid the amount the player bid for the property  
     */
-    void buy(Property p, int bid, Game game) { 
+    void buy(Property p, int bid, Game game, MessagePane mp) { 
         //This is all only unmortgaging or paying intrest
         if(p.isMortgaged()) {
             //Can we afford to unmortgage it
             if(canAfford((int) (bid+p.getMortgageValue()*1.1))) {
                 System.out.print(p.toString() + "\nIs mortgaged, would you like to unmortgage it now, or do so later? ");
-                if (GameView.getBoolInput("Buy", p.getName()+" is mortgaged, would you like to unmortgage it now, or pay it later?", "UnMortgage price: "+(int) (p.getMortgageValue() * 1.1)+"Intreset only price: "+(int) (p.getMortgageValue() * 0.1)+".")) {
-                    p.unMortgage();
-                } else {
-                    System.out.println("Property remains mortgaged, intrest only payment made. ");
-                    debit((int) (p.getMortgageValue() * 0.1));
-                }
+                mp.getBoolInput("Buy", p.getName()+" is mortgaged, would you like to unmortgage it now, or pay it later?", 
+                    "UnMortgage price: "+(int) (p.getMortgageValue() * 1.1)+"Intreset only price: "+(int) (p.getMortgageValue() * 0.1)+".",
+                    (result) -> {if(result) {
+                        p.unMortgage();
+                    } else {
+                        System.out.println("Property remains mortgaged, intrest only payment made. ");
+                        debit((int) (p.getMortgageValue() * 0.1));
+                    }}
+                );
             }
             //Pay only mandatory intrest
             else {

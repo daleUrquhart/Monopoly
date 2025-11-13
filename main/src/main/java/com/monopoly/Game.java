@@ -414,7 +414,6 @@ public final class Game {
     void handleRoll(GameView view, GameController controller) {   
         MessagePane mp = view.getMessagePane();
         mp.clearMessages();
-        view.removeDice();
 
         // Make roll and assign the new location
         int roll = getDice().roll(getCurrentPlayer());  
@@ -455,82 +454,17 @@ public final class Game {
                 controller.handleUnownedProperty();
             } 
         } else {
-            handleSpecialSquare(controller);
+            controller.handleSpecialSquare(this, controller);
         }
-
+        
         // Assign next player
         getNextPlayer();  
 
         // Is the next player in jail?
         if(current.inJail()) {
-            if(controller.handleJailTurn()) {
-                view.showDice();
-            } 
-        }
-        
-        else view.showDice();
+            controller.handleJailTurn(view, this); // removing this conditional is so far untested. See earleir versions for old code if jail has  
+        }                                           // issues for going again after being freed by doubles
     }
-
-    /**
-     * Handles game logic for landing on any of the special squares
-     */
-    void handleSpecialSquare(GameController controller) {  
-        BoardSpace location = current.getLocation(); 
-        Tax tax;
-        CardManager cm;
-        Go go;
-        Jail jail = getJail(); 
-        Card card; 
-
-        if (location instanceof Go) {
-            go = (Go) location;
-            go.reward(current);
-            GameView.showAlert("Congratulations, " + current.getName() + "!", "You made it to Go! ");
-        } 
-        
-        else if (location instanceof Jail) {
-            jail = (Jail) location;
-            if (jail.hasJailed()) {
-                GameView.showAlert("Welcome to the visitation center",  "Say hello to your friends. ");
-            } else {
-                GameView.showAlert("Welcome to the visitation center. ", "Better stay on the right side of these bars...");
-            }
-        } 
-        
-        else if (location instanceof FreeParking) {
-            GameView.showAlert("Welcome to free parking", "Take a breather. ");
-        } 
-        
-        else if (location instanceof GoToJail) {  
-            jail.addPlayer(current);            
-            GameView.showAlert("Go directly to Jail", "Do not pass Go, do not collect $200! ");
-            if(getDice().doubles()) {increment(getTurnIndex());} //Do not go again from doubles if landed on go to jail, re-increment turn index
-        } 
-        
-        else if (location instanceof Tax) {
-            tax = (Tax) location;
-            //If player can afford the tax pay it
-            if(current.canAfford(tax.getTax())) {
-                tax.charge(current);
-                GameView.showAlert("Uh oh! You have been charged "+tax.getName()+"!", "You were charged $" + tax.getTax() + "!");
-            } 
-            //Liquidate asssets to pay for taxes
-            else if(!current.canAfford(tax.getTax()) && current.getNetWorth() >= tax.getTax()) {
-                current.liquidate(tax.getTax(), this);
-                GameView.showAlert("Breaking! " + current.getName() + " can not afford their taxes and goes bankrupt!","It was a good run"); 
-            }
-            //Player bankrupted by bank, not able ot pay thier taxes
-            if(getPlayerCount() == 2) {removePlayer(current);}
-            else current.bankrupted(Banker.getInstance(), this);      
-        } 
-        
-        else if (location instanceof CardManager) {
-            cm = (CardManager) location;
-            card = cm.draw(this);
-            GameView.showAlert("Welcome to the "+location.getName()+" square! Your card draw is:", card.toString());
-            CardManager.handle(card, this, controller); 
-        }
-    } 
 
     /**
      * Gets the options a player has for their turn in jail
@@ -553,7 +487,7 @@ public final class Game {
      * @param choice Choice selected
      * @return Whether or not they were freed by doubles
      */
-    public boolean handleJailChoice(int choice) {
+    public boolean handleJailChoice(int choice, MessagePane mp) {
         boolean freedByDoubles = false;
         Jail jail = getJail(); 
 
@@ -570,7 +504,7 @@ public final class Game {
                     jail.removePlayer(current);
                     current.setLocation(getSpace(current.getLocation().getId() + roll));
                 } else {
-                    incrementFailedJailTurn();
+                    incrementFailedJailTurn(mp);
                 }
             }
             case 3: { // Use 'Get Out of Jail Free' card
@@ -585,17 +519,17 @@ public final class Game {
     /**
      * Increments the amount of failed jail turns
      */
-    private void incrementFailedJailTurn() {
+    private void incrementFailedJailTurn(MessagePane mp) {
         current.incrementJailTurns();
         if (current.getJailedTurns() == 3) {
-            handleMaxJailTurns();
+            handleMaxJailTurns(mp);
         }
     }
 
     /**
      * Handles the event of maximum jail turns reached
      */
-    private void handleMaxJailTurns() {
+    private void handleMaxJailTurns(MessagePane mp) {
         Jail jail = getJail();
         if (current.ownsJailCard()) {
             current.decrementJailCard();
@@ -604,46 +538,30 @@ public final class Game {
             current.debit(getBail());
             jail.removePlayer(current);
         } else {
-            handleBankruptcy();
+            handleBankruptcy(mp);
         }
     }
 
     /**
      * Handles the bankruptcy state of a player by eitehr liquidating assets or sending them  into bankruptcy
      */
-    private void handleBankruptcy() {
+    private void handleBankruptcy(MessagePane mp) {
         if (current.liquidate(getBail(), this)) {
             current.debit(getBail());
             getJail().removePlayer(current);
         } else {
-            bankruptPlayer();
+            bankruptPlayer(mp);
         }
     }
 
     /**
      * Manages the actions for bankrupting a player
      */
-    private void bankruptPlayer() {
+    void bankruptPlayer(MessagePane mp) {
         if (getPlayerCount() == 2) {
             removePlayer(current);
         } else {
-            getCurrentPlayer().bankrupted(Banker.getInstance(), this);
+            getCurrentPlayer().bankrupted(Banker.getInstance(), this, mp);
         }
-    }
-
-    /**
-     * Gets the message to display to user on their jail turn
-     * @return String content for message
-     */
-    String getJailMessage() {
-        if (getCurrentPlayer().ownsJailCard()) {
-            return getCurrentPlayer().canAfford(getBail())
-                ? "Choose an option:\n1. Pay fine\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card"
-                : "Choose an option:\n2. Try for doubles\n3. Use 'Get Out of Jail Free' card";
-        } else {
-            return getCurrentPlayer().canAfford(getBail())
-                ? "Choose an option:\n1. Pay fine\n2. Try for doubles"
-                : "You must try for doubles.";
-        }
-    }
+    } 
 }

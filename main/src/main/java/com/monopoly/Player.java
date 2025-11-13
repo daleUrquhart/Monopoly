@@ -203,25 +203,28 @@ final class Player extends Entity {
      * Handles bankruptcy casued by anotehr player
      * @param bankrupter the player who caused the bankruptcy
      */
-    void bankrupted(Entity bankrupter, Game game) {  
+    void bankrupted(Entity bankrupter, Game game, MessagePane mp) {  
 
         for(Property p : getProperties()) {
             bankrupter.addProperty(p);
             //If property is mortgaged give option to pay it off
             if(p.isMortgaged()) {
                 System.out.print(p.toString()+"\nIs mortgaged, would you like to unmortgage it now, or do so later? ");
-                if(GameView.getBoolInput("Bankruptcy", p.toString()+" is mortgaged.", "Would you like to unmortgage it now, for "+(int) ((double) p.getMortgageValue() * 1.1)+", or wait until later and only pay the current intrest owing of "+(int) ((double) p.getMortgageValue() * 0.1)+".")) {
-                    p.unMortgage();
-                } else {
-                    System.out.println("Property remains mortgaged, intrest only payment made. ");
-                    bankrupter.debit((int) ((double) p.getMortgageValue() * 0.1));
-                }
-            } 
+                mp.getBoolInput("Bankruptcy", p.toString()+" is mortgaged.", 
+                    "Would you like to unmortgage it now, for "+(int) ((double) p.getMortgageValue() * 1.1)+", or wait until later and only pay the current intrest owing of "+(int) ((double) p.getMortgageValue() * 0.1)+".",
+                    (result) -> {
+                        if(result) {
+                            p.unMortgage();
+                        } else {
+                            System.out.println("Property remains mortgaged, intrest only payment made. ");
+                            bankrupter.debit((int) ((double) p.getMortgageValue() * 0.1));
+                        }
+                    }
+                ); 
+            }    
             //Sell any developments back to the bank, balance goes to bankrupted player and is transfered over at the bottom of method along with balance at bankruptcy
-            else if(p.developed()) {
-                p.sellDevelopment();
-            }
-        }
+            while(p.developed()) p.sellDevelopment();
+        }  
 
         bankrupter.credit(getBalance());
         game.removePlayer(this);

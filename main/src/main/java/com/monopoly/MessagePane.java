@@ -1,8 +1,9 @@
 package com.monopoly;
 
+import java.util.List;
 import java.util.function.Consumer;
 
-import javafx.geometry.Pos;
+import javafx.geometry.Pos; 
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -73,6 +74,14 @@ public class MessagePane extends GridPane {
         messageDisplay.getChildren().add(new Label(message));  
     } 
     
+    /**
+     * Helps with re-enabling dice after a certain point is reached
+     */
+    void showMessage(String message, Runnable onClose) {
+        messageDisplay.getChildren().add(new Label(message));  
+        onClose.run();
+    }
+
     /**
      * Displays a yes/no question inline using radio buttons instead of a popup.
      * Blocks further input until submitted, then calls the provided callback.
@@ -178,7 +187,30 @@ public class MessagePane extends GridPane {
         });
     }
 
+    void getChoiceInput(String title, String header, String context, List<String> options, Consumer<String> callback) {
+        Label question = new Label(title + "\n" + header + "\n" + context);
+        question.setWrapText(true);
 
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_LEFT);
+
+        VBox container = new VBox(10, question, buttonBox);
+        container.setAlignment(Pos.CENTER_LEFT);
+        messageDisplay.getChildren().add(container);
+
+        // Create buttons for each available option
+        for (String option : options) {
+            Button button = new Button(option);
+            button.setOnAction(e -> {
+                messageDisplay.getChildren().remove(container);
+                callback.accept(option);
+            });
+            buttonBox.getChildren().add(button);
+        }
+    }
+
+    
+    
     /**
      * Gets the GUI Player display in a VBox
      */

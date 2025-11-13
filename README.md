@@ -82,8 +82,21 @@ Game flow UX improvements
 ## BugLog and implmentation notes
 ### 2 Player Tests
 
-### Bad implementation of jail
-Game crashes and behaves poorly on jail actions
+### Rolls enabled on Jail turn, bankrupting broken
+- roll always works, but works when its not supposed to on jail tunrs
+- Turns are not rotating, might be due to bankruptcey not working right (removes player from rotation, but doesnt remove them elsewheres??)
+  - Balances can go into negetive....
+- Once you own like 14 properties the display kinda breaks
+
+### <Fied> Bad implementation of jail, dice not always re-enabled
+- Complete overhaul of jail logic, similair to boolInput implementation, looks nice but doesnt enforce no rolling when not supposed to 
+- After updating roll enabling logic dice no longer lock when not supposed to. Minor bug with jail (above)
+- Dice work after landing on unowned proeprty adn a chance card that elts you buy a property, but that it
+  - The chance card to a utility runs handleUnownedProperty, the only square method that lets a roll after so that checks out 
+  - however, unowned, and other special squares do not work 
+- Made adjustments to private sale
+- Duct-taped a solution to phasing out reminaing GameView methods moved to message pane, could probably be made better by giving a message pane isntance to Player and Game with how much its used in there, but that raises coupling concerns
+- Game crashes and behaves poorly on jail actions
 
 ### <Fixed> Illegal dice rolls allowed, poor display of properties after purchasing a new one
 - Fix worked as expected

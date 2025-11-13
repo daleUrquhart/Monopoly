@@ -45,6 +45,6 @@ public class Jail extends BoardSpace{
      * @return true for if there is a player in jail
      */
     boolean hasJailed() {
-        return jailedPlayers.isEmpty();
+        return !jailedPlayers.isEmpty();
     } 
 }
