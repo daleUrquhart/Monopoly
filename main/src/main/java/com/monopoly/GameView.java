@@ -73,7 +73,7 @@ public class GameView {
      * Gets the Display Pane mainting all data to the right of the board
      * @return primary display pane
      */
-    MessagePane getMessagePane() {
+    public MessagePane getMessagePane() {
         return messagePane;
     }
     

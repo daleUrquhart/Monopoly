@@ -3,6 +3,8 @@ package com.monopoly;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.monopoly.boardspaces.Property;
+
 import javafx.geometry.Pos; 
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -59,7 +61,7 @@ public class MessagePane extends GridPane {
     /**
      * Clears turn related messages form messagePane
      */
-    void clearMessages() {
+    public void clearMessages() {
         messageDisplay.getChildren().clear();
     } 
 
@@ -67,7 +69,7 @@ public class MessagePane extends GridPane {
      * Adds a message to the top of the message board
      * @param message Message to be displayed
      */
-    void showMessage(String message) {  
+    public void showMessage(String message) {  
         Label label = new Label(message);
         label.setWrapText(true);
         messageDisplay.getChildren().add(label);
@@ -76,7 +78,7 @@ public class MessagePane extends GridPane {
     /**
      * Displays a button with a message, Runnable executed on click
      */
-    void showAck(String message, Runnable onClick) {
+    public void showAck(String message, Runnable onClick) {
         Label label = new Label(message);
         label.setWrapText(true);
 

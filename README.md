@@ -43,7 +43,7 @@ Instructions on how to install and run the project
 
 ```bash 
 git clone https://github.com/daleUrquhart/Monopoly
-cd Monopoly
+cd Monopoly/main
 mvn clean install 
 mvn javafx:run
 ```
@@ -68,39 +68,58 @@ JavaFX
 
 ---
 
-## Devnotes 
-Initialize dice in the Game init?  
-
-Implement better UX (use side bar over popups for some events, etc.)
-
-Make Go a singleton? Go, FP, other special tiles
-
-Game flow UX improvements
-
----
-
 ## BugLog and implmentation notes
-### 2 Player Tests
+### (TODO) Once a more final UI pattern is decided, update README screenshots
+  - Video / GIF displays for specific logic flows?
+  - Cover a breadth of scenarios, but dont clutter the readme
+  - Also move these notes and organzie better in a BUGLOG.md
 
-### TODO
-- Something is off with turn balance display, havent traced yet to see what. Possibly performing payments on next player instead of current in some cases.
-  - TODO
-  - Deffinetly charging next player. processNextTurn() calls advanceTurn() but processNextTurn is called before payments are made in turn handling, this causes next player to make any payments handled in a showAck that results in a player.pay() (Ex: Pay bail)
-  - the pay bail case is especially fatal since it flips the jail status of next player leaving current in jail and sending next player to jail
+### (TODO) Properly structure in a MVC design 
+- Structure
+  - So far I have just been coping with what I came back to after having made the hurried development a year ago
+  - Implment a MVC restructure once all logic is functioning i will jsut have to cut and paste so i will do the grand migration once all known concerns are addressed
+  - Hoping to structure it like the TEMS project 
 
-- Implement property scrolling view once 10 are owned
-  - TODO
-- ChargeChanceRent in RR and Utility does not check for bankruptcy maybe make rent a game method and have a bool param for if its a chance rent because it also does not update mp correctly
-  - TODO
-- Utility Rent Does not work
-  - TODO 
-- Tech debt, Read over classes, ensure good method documentations at least
-  - TODO
-- bankruptcy is not efficently hadnled, look at putting the showAck bankruptcy logic in pay() and maybe move pay() to Game from Player
+### (TODO) Charging the wrong player in some instances
+  - Something is off with turn balance display, havent traced yet to see what. Possibly performing payments on next player instead of current in some 
+    - TODO
+    - Deffinetly charging next player. processNextTurn() calls advanceTurn() but processNextTurn is called before payments are made in turn handling, this causes next player to make any payments handled in a showAck that results in a player.pay() (Ex: Pay bail)
+    - The pay bail case is especially fatal since it flips the jail status of next player leaving current in jail and sending next player to jail
+
+### (TODO) Implement property scrolling view once 10 are owned
+    - Display gets clutttered and breaks once several properties are squished into current plaeyr display
+
+### (TODO) Landing on owned Utility and RR issues
+  - Will likely be fixed after fully implementing the event handlers
+  - ChargeChanceRent in RR and Utility does not check for bankruptcy maybe make rent a game method and have a bool param for if its a chance rent because it also does not update mp correctly
+    - TODO
+  - Utility Rent Does not work
+    - TODO 
+
+### (TODO) Address tech debt
+  - Read over classes, ensure good class method javadocs
+
+### (TODO) Bankruptcy is not efficently hadnled
+  -  TODO make pay return Bool (null for cant afford, but has the net worth) then Game method that called it will return bool when null and the controller will do a showAck when recieves false and prompt asssets to be sold off then recurse back into the controller method
+  
   - credit and debit should also be made private and just pay the banker when required
-  - TODO
+  - look at putting the showAck bankruptcy logic in a centralized place where all payments are processed through
 
-### Several fixes (see notes)
+### (TODO) Proper migration to SPA MVC 
+  - Factor logic into the format of the TEMS application (see repo on my github) 
+
+### (TODO) Transition to event handlers for rest of project
+  - Right now, unowned properties go straight to auction if player has insufficent cash but sifficent net worth. It should ask if you want to buy and if insufficent cash do showAck sell assets and submit prompt and go back to buy or send to auction after submmit is clicked. This should be addressed during the implementation of UnownedPropertyEvent.
+  - Property, Game, GameController
+  - Process all payments through PaymentEvent
+  - Process all messages through MessageEvent?
+
+### (Done) Implemented event handling and made singletons for special squares, segregated event and boardspace classes to their own packages
+  - Implementation of events on special squares went well, will be implementing them for the rest of the project
+  - Created and implemented event classes for handling special square actions 
+  - Referenced logic in Banker for singleton implementation
+
+### (Done) Several fixes (see notes)
 - Note:
   - The refactoring turned out to be alot larger than expected. Big changes in here, likely introduced bugs, though no new ones noted after initial testing
 
@@ -234,13 +253,4 @@ This was probably just doubles after further testing, closed.
 ---
 
 ## ExecutionFlow
-Build game
-  Decks & game map
-
-Build gameview
-
-Build gamecontroller
-
-GAME LOOP:
-Game.handleRoll
-Game.getNextPlayer
+### TODO

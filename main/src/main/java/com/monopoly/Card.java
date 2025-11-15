@@ -12,7 +12,7 @@ import java.util.ArrayList;
 /**
  * Represents a card in the game that can have various actions like payments, advancing to locations, and special rules.
  */
-class Card {
+public class Card {
 
     /**
      * The name or description of the card, often used to indicate the card's action.
@@ -147,14 +147,14 @@ class Card {
     /**
      * Returns whether the card is jsut a credit or not
      */
-    Boolean isCredit() {
+    public Boolean isCredit() {
         return credit;
     }
 
     /**
      * Returns the payment amount
      */
-    int getPayment() {
+    public int getPayment() {
         return payment;
     }
 
@@ -163,7 +163,7 @@ class Card {
      *
      * @return the name of the card
      */
-    String getName() {
+    public String getName() {
         return name;
     }
  
@@ -173,7 +173,7 @@ class Card {
      *
      * @return true if it's a "Get Out of Jail Free" card, false otherwise
      */
-    boolean isGetOutOfJail() {
+    public boolean isGetOutOfJail() {
         return getOutOfJail;
     }
 
@@ -182,7 +182,7 @@ class Card {
      *
      * @return true if the card sends the player to jail, false otherwise
      */
-    boolean isGoToJail() {
+    public boolean isGoToJail() {
         return goToJail;
     }
 
@@ -191,7 +191,7 @@ class Card {
      *
      * @return true if the card is per development, false otherwise
      */
-    boolean isPerDevelopment() {
+    public boolean isPerDevelopment() {
         return perDevelopment;
     }
 
@@ -200,7 +200,7 @@ class Card {
      *
      * @return the cost per house, or 0 if not applicable
      */
-    int getHouseCost() {
+    public int getHouseCost() {
         return houseCost;
     }
 
@@ -209,7 +209,7 @@ class Card {
      *
      * @return the cost per hotel, or 0 if not applicable
      */
-    int getHotelCost() {
+    public int getHotelCost() {
         return hotelCost;
     }
 
@@ -218,7 +218,7 @@ class Card {
      *
      * @return true if the card involves advancing to a location, false otherwise
      */
-    boolean isAdvanceTo() {
+    public boolean isAdvanceTo() {
         return advanceTo;
     }
 
@@ -227,7 +227,7 @@ class Card {
      *
      * @return the location object, or null if not applicable
      */
-    int getLocation() {
+    public int getLocation() {
         return location;
     }
 
@@ -236,7 +236,7 @@ class Card {
      *
      * @return true if the card involves advancing by steps, false otherwise
      */
-    boolean isAdvanceBy() {
+    public boolean isAdvanceBy() {
         return advanceBy;
     }
 
@@ -245,7 +245,7 @@ class Card {
      *
      * @return the number of steps, or 0 if not applicable
      */
-    int getSteps() {
+    public int getSteps() {
         return steps;
     }
 
@@ -254,7 +254,7 @@ class Card {
      *
      * @return true if the card involves per-player interaction, false otherwise
      */
-    boolean isPerPlayer() {
+    public boolean isPerPlayer() {
         return perPlayer;
     }
 
@@ -263,7 +263,7 @@ class Card {
      *
      * @return the amount per player, or 0 if not applicable
      */
-    int getPlayerAmount() {
+    public int getPlayerAmount() {
         return playerAmount;
     }
 
@@ -272,7 +272,7 @@ class Card {
      *
      * @return true if the card is a Chance card, false otherwise
      */
-    boolean isChance() {
+    public boolean isChance() {
         return chance;
     } 
 
@@ -280,7 +280,7 @@ class Card {
      * Gets whether or not the player is advancing to the nearest specified property type 
      * @return Whetehr or not the player is advancing to the nearest specified property type 
      */
-    boolean isNearest() {
+    public boolean isNearest() {
         return nearest;
     }
 
@@ -288,7 +288,7 @@ class Card {
      * Gets the nearest specified proerty type
      * @return nearest specified property type 
      */
-    String getNearestType() {
+    public String getNearestType() {
         return nearestType;
     }
 
@@ -299,7 +299,7 @@ class Card {
      * @return A list of Card objects loaded from the CSV file.
      * @throws IOException If there is an error reading the CSV file.
      */
-    static ArrayList<Card> getCCDeck(InputStream stream) throws IOException { 
+    public static ArrayList<Card> getCCDeck(InputStream stream) throws IOException { 
         ArrayList<Card> ccDeck = new ArrayList<>();  
 
         if(stream == null) {
@@ -372,7 +372,7 @@ class Card {
      * @return A list of Card objects loaded from the CSV file.
      * @throws IOException If there is an error reading the CSV file.
      */
-    static ArrayList<Card> getChanceDeck(InputStream stream) throws IOException {
+    public static ArrayList<Card> getChanceDeck(InputStream stream) throws IOException {
         ArrayList<Card> chanceDeck = new ArrayList<>();  
         if(stream == null) {
             System.out.println("Bad chance input stream");
@@ -447,8 +447,8 @@ class Card {
     /**
      * Returns a string representation of the card
      */
-    @Override
-    public String toString() {
+
+    @Override public String toString() {
         return getName();
     }
 }

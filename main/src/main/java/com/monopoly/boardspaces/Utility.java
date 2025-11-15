@@ -2,7 +2,10 @@
  * Utility location for the board
  */
 
-package com.monopoly;
+package com.monopoly.boardspaces;
+
+import com.monopoly.Entity;
+import com.monopoly.Player;
 
 /**
  * Utility class
@@ -12,7 +15,7 @@ public final class Utility extends Property{
     /**
      * Constructor for Utility
      */
-    Utility(String name, int id, int price, Entity owner) {
+    public Utility(String name, int id, int price, Entity owner) {
         super(name, "Utility", id, price, owner); 
     } 
 
@@ -20,7 +23,7 @@ public final class Utility extends Property{
      * Gets the amount of utilities owned
      * @return amount of utilities owned
      */ 
-    int getRent(Player player) {
+    public int getRent(Player player) {
         int count = 0;
         for (Property p : getOwner().getProperties()) {
             if (p instanceof Utility) {
@@ -33,19 +36,7 @@ public final class Utility extends Property{
     /**
      * Charges rent to the player who lands on the property
      */
-    @Override
-    void chargeRent(Player player) { 
-        int rent = getRent(player);
-        player.debit(rent);
-        getOwner().credit(rent);
-    }
-
-    /**
-     * Charges chance rent to the player who lands on the property (10x roll no matter what)
-     */ 
-    void chargeChanceRent(Player player) {
-        int rent = (player.getRoll() * 10);
-        player.debit(rent);
-        getOwner().credit(rent);
-    }
+    @Override public void chargeRent(Player player) { 
+        player.pay(getOwner(), getRent());
+    } 
 }

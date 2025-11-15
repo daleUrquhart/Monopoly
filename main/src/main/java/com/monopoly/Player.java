@@ -7,12 +7,16 @@
 
 package com.monopoly;
 
+import com.monopoly.boardspaces.BoardSpace;
+import com.monopoly.boardspaces.Go;
+import com.monopoly.boardspaces.Property;
+
 import javafx.scene.image.ImageView;
 
 /**
  * Player object
  */
-final class Player extends Entity { 
+public final class Player extends Entity { 
 
     /**
      * ID Counter
@@ -92,7 +96,7 @@ final class Player extends Entity {
      * Gets the piece representing the player
      * @return the piece representing the player
      */
-    ImageView getPiece() {
+    public ImageView getPiece() {
         return piece;
     }
 
@@ -101,7 +105,7 @@ final class Player extends Entity {
      * Used for icon corner placement on the map
      * @return ID of the player
      */
-    int getID() {
+    public int getID() {
         return ID;
     }
 
@@ -109,7 +113,7 @@ final class Player extends Entity {
      * Gets the total number of houses the player owns
      * @return number of houses player owns
      */
-    int getTotalHouses() {
+    public int getTotalHouses() {
         int houses = 0;
         for(Property p : getProperties()) {
             houses += p.getHouses();
@@ -121,7 +125,7 @@ final class Player extends Entity {
      * Gets the total number of hotels the player owns
      * @return number of hotels the player owns
      */
-    int getTotalHotels() {
+    public int getTotalHotels() {
         int hotels = 0;
         for(Property p : getProperties()) {
             hotels += p.hasHotel() ? 1 : 0;
@@ -132,14 +136,14 @@ final class Player extends Entity {
     /**
      * Getter method for player's location
      */
-    BoardSpace getLocation() {
+    public BoardSpace getLocation() {
         return location;
     }
 
     /**
      * Gets the player's last roll
      */
-    int getRoll() {
+    public int getRoll() {
         return roll;
     } 
 
@@ -204,8 +208,7 @@ final class Player extends Entity {
         Banker banker = Banker.getInstance();
         removeProperty(property);
         property.setOwner(banker);
-        credit((int) (property.getPrice() / 2));
-        banker.debit((int) (property.getPrice() / 2)); 
+        banker.pay(this, property.getPrice()/2);  
     }
 
     /**
@@ -226,7 +229,7 @@ final class Player extends Entity {
     /**
      * Player aquired a 'Get out of jail free card'
      */
-    void addJailCard() {
+    public void addJailCard() {
         jailCardNum++;
     }
 
@@ -234,7 +237,7 @@ final class Player extends Entity {
      * Checks if the player is in jail
      * @return true for if the player is in jail
      */
-    boolean inJail() {
+    public boolean inJail() {
         return jail;
     }
 

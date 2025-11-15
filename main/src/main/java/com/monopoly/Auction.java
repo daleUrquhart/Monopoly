@@ -2,10 +2,12 @@ package com.monopoly;
 
 import java.util.List;
 
+import com.monopoly.boardspaces.Property;
+
 /**
  * Auction class for handling auction flow
  */
-class Auction {
+public class Auction {
 
     /**
      * Property up for auction
@@ -30,7 +32,7 @@ class Auction {
     /**
      * Constructor
      */
-    Auction(Property property, List<Player> bidders) {
+    public Auction(Property property, List<Player> bidders) {
         this.property = property;
         this.bidders = bidders;
         this.highestBid = 0;

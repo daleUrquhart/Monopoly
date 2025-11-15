@@ -2,7 +2,10 @@
  * Railroad location for the board
  */
 
-package com.monopoly;
+package com.monopoly.boardspaces;
+
+import com.monopoly.Banker;
+import com.monopoly.Player;
 
 /**
  * Railroad class
@@ -12,15 +15,14 @@ public final class Railroad extends Property{
     /**
      * Constructor for Railroad
      */
-    Railroad(String name, int id, int price, Banker owner) {
+    public Railroad(String name, int id, int price, Banker owner) {
         super(name, "Railroad", id, price, owner);
     }
 
     /**
      * Gets the rent charged at the proerty
      */
-    @Override
-    int getRent() {
+    @Override public int getRent() {
         double rent = 12.5;
         for (Property p : getOwner().getProperties()) {
             if (p instanceof Railroad) {
@@ -33,19 +35,7 @@ public final class Railroad extends Property{
     /**
      * Charges rent to the player who lands on the property
      */
-    @Override
-    void chargeRent(Player player) {
-        int rent = getRent();
-        player.debit(rent);
-        getOwner().credit(rent);
-    }
-
-    /**
-     * Charges chance rent to the plauer who lands on the property
-     */
-    void chargeChanceRent(Player player) {
-        int rent = getRent() * 2;
-        player.debit(rent);
-        getOwner().credit(rent);
-    }
+    @Override public void chargeRent(Player player) {
+        player.pay(getOwner(), getRent());
+    } 
 }

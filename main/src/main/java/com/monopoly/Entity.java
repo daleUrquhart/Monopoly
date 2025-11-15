@@ -8,10 +8,12 @@ package com.monopoly;
 
 import java.util.ArrayList;
 
+import com.monopoly.boardspaces.Property;
+
 /**
  * Banker object
 */
-class Entity { 
+public class Entity { 
 
     /**
      * Name of the Banker
@@ -52,7 +54,7 @@ class Entity {
      * Gets name
     * @return name
     */
-    String getName() {
+    public String getName() {
         return name;
     }
 
@@ -68,7 +70,7 @@ class Entity {
      * Gets the total assets of the player
     * @return the total assets
     */
-    int getNetWorth() {
+    public int getNetWorth() {
         return netWorth;
     } 
     
@@ -76,7 +78,7 @@ class Entity {
      * Handles complete transaction between two players
      * @param adjustment
      */
-    void pay(Entity payee, int amount) {
+    public void pay(Entity payee, int amount) {
         debit(amount);
         payee.credit(amount);  
     }
@@ -85,7 +87,7 @@ class Entity {
      * Adjusts networth of the player
     * @param adjustment the adjustment value of the networth 
     */
-    void adjustNetWorth(int adjustment) { 
+    public void adjustNetWorth(int adjustment) { 
         netWorth += adjustment; 
     }
 
@@ -93,7 +95,7 @@ class Entity {
      * Debits the balance
     * @param adjustment amount to add to balance 
     */
-    void debit(int adjustment) { 
+    protected void debit(int adjustment) { 
         balance -= adjustment;
         adjustNetWorth(adjustment * -1); 
     }
@@ -102,7 +104,7 @@ class Entity {
      * Credits the balance
     * @param adjustment to the balance 
     */
-    void credit(int adjustment) { 
+    protected void credit(int adjustment) { 
         balance += adjustment;
         adjustNetWorth(adjustment); 
     }
@@ -112,7 +114,7 @@ class Entity {
     * @param adjustment the amount to check
     * @return true for if it can be afforded
     */
-    boolean canAfford(int adjustment) {
+    public boolean canAfford(int adjustment) {
         return getBalance() >= adjustment;
     }
 
@@ -120,7 +122,7 @@ class Entity {
      * Gets properties owned
     * @return properties owned
     */
-    ArrayList<Property> getProperties() {
+    public ArrayList<Property> getProperties() {
         return properties;
     }
 
@@ -129,7 +131,7 @@ class Entity {
     * @param check property to check
     * @return true for if the property's set is fully aquired by the player, else false
     */
-    boolean ownsSetFor(Property check) {
+    public boolean ownsSetFor(Property check) {
         int count = 0;
         for(Property p : getProperties()) { 
             if(p.getType().equals(check.getType())) { 
@@ -143,7 +145,7 @@ class Entity {
      * Removes a property from the player's possesion
     * @param property the property to remove 
     */
-    void removeProperty(Property property) { 
+    public void removeProperty(Property property) { 
         properties.remove(property); 
     }
 
@@ -151,7 +153,7 @@ class Entity {
      * Adds a property to the player's array of properties
     * @param newProperty the property to be added
     */
-    void addProperty(Property newProperty) {
+    public void addProperty(Property newProperty) {
         properties.add(newProperty); 
     } 
 }

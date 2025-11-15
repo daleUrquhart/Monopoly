@@ -5,7 +5,13 @@
  * @since 2024-10-18
  */
 
-package com.monopoly;
+package com.monopoly.boardspaces;
+
+import com.monopoly.Banker;
+import com.monopoly.Entity;
+import com.monopoly.Game;
+import com.monopoly.Player;
+import com.monopoly.events.GameEvent;
 
 /**
  * Property object class
@@ -75,7 +81,7 @@ public class Property extends BoardSpace{
     /**
      * Default constructor for a properrty object
      */
-    Property(Entity owner, String name, String type, int setSize, int id, int rent, int h1, int h2, int h3,int h4, int hotel, int mortgage, int developmentCost, int price) {
+    public Property(Entity owner, String name, String type, int setSize, int id, int rent, int h1, int h2, int h3,int h4, int hotel, int mortgage, int developmentCost, int price) {
         super(name, id);
         this.price = price;
         setOwner(owner);
@@ -98,14 +104,13 @@ public class Property extends BoardSpace{
         this.price = price; 
     } 
 
-    @Override 
-    void onLand(Player current, Game game, MessagePane mp, GameController controller) {}
+    @Override public GameEvent onLand(Player current, Game game) {return null;}
 
     /**
      * Gets the size of the set of properties of the same type
      * @return the size of the set of properties of the same type
      */
-    int getSetSize() {
+    public int getSetSize() {
         return setSize;
     }
 
@@ -113,7 +118,7 @@ public class Property extends BoardSpace{
      * Gets the mortgage value for the property
      * @return Mortgage value of the property
      */
-    int getMortgageValue() {
+    public int getMortgageValue() {
         return mortgageValue;
     }
 
@@ -123,7 +128,7 @@ public class Property extends BoardSpace{
      * Adjusts networth of property to newOwner's networth 
      * @param newOwner the new owner of the property
      */
-    final void setOwner(Entity newOwner) {
+    public final void setOwner(Entity newOwner) {
         if(getOwner() != null) {getOwner().adjustNetWorth((getPrice() / -2));}
         
         owner = newOwner;
@@ -135,14 +140,14 @@ public class Property extends BoardSpace{
      * Mortgages the property. A mortgaged property does not count to net worth
      * @return true for if the action was succesful
      */
-    void mortgage() { 
+    public void mortgage() { 
         mortgaged = true;
     }
 
     /**
      * Unmortgages a property
      */
-    void unMortgage() {
+    public void unMortgage() {
         mortgaged = false;
     } 
 
@@ -150,7 +155,7 @@ public class Property extends BoardSpace{
      * Gets the type of the property set
      * @return the type of the property set
      */
-    String getType() {
+    public String getType() {
         return type;
     }
 
@@ -158,7 +163,7 @@ public class Property extends BoardSpace{
      * Gets the owner of the property
      * @return the owner of the property
      */
-    Entity getOwner() {
+    public Entity getOwner() {
         return owner;
     }
 
@@ -174,7 +179,7 @@ public class Property extends BoardSpace{
      * Whether or not the property has houses or hotel (is developed)
      * @return true for if there is developments on the property
      */
-    boolean developed() {
+    public boolean developed() {
         return getHouses()!=0 || hasHotel();
     }
 
@@ -182,7 +187,7 @@ public class Property extends BoardSpace{
      * Checks if the property is mortaged or not
      * @return true if the property is mortgaged
      */
-    boolean isMortgaged() {
+    public boolean isMortgaged() {
         return mortgaged;
     }
 
@@ -190,7 +195,7 @@ public class Property extends BoardSpace{
      * Gets the status of whetehr or not a hotel is on the property
      * @return true for if a hotel exists
      */
-    boolean hasHotel() {
+    public boolean hasHotel() {
         return hotel;
     }
 
@@ -198,7 +203,7 @@ public class Property extends BoardSpace{
      * Gets the number of hosues on the proerty
      * @return the number of houses on the property
      */
-    int getHouses() {
+    public int getHouses() {
         return houses;
     }
 
@@ -206,10 +211,9 @@ public class Property extends BoardSpace{
      * Buys a development on the property
      * Sets houses to 0, hotel to true
      */
-    void buyDevelopment() {
+    public void buyDevelopment() {
+        getOwner().pay(Banker.getInstance(), getDevelopmentCost());
         getOwner().adjustNetWorth((int) (getDevelopmentCost() / 2)); 
-        getOwner().debit(getDevelopmentCost());
-        Banker.getInstance().credit(getDevelopmentCost());
 
         if(getHouses() == 4) {
             hotel = true;
@@ -222,7 +226,7 @@ public class Property extends BoardSpace{
     /**
      * Sells a development on the property
      */
-    void sellDevelopment() { 
+    public void sellDevelopment() { 
         Banker.getInstance().pay(getOwner(), getDevelopmentCost() / 2);
         if(hasHotel()) {
             houses = 4;
@@ -235,7 +239,7 @@ public class Property extends BoardSpace{
     /**
      * Checks if a property on is owned by the Banker or a Player 
      */
-    boolean isOwned() { 
+    public boolean isOwned() { 
         return getOwner() instanceof Player;
     }
 
@@ -244,7 +248,7 @@ public class Property extends BoardSpace{
      * @param newOwner
      * @param oldOwner
      */
-    void sellTo(Entity newOwner, int amount) {
+    public void sellTo(Entity newOwner, int amount) {
         newOwner.pay(getOwner(), amount); 
         owner.removeProperty(this);
         owner = newOwner;
@@ -255,7 +259,7 @@ public class Property extends BoardSpace{
      * Gets the price of the property to buy
      * @return the price of the property
      */
-    int getPrice() {
+    public int getPrice() {
         return price;
     }
 
@@ -263,16 +267,15 @@ public class Property extends BoardSpace{
      * Charges rent to the player who lands on the property
      * No rent charged when banker owns the property
      */
-    void chargeRent(Player renter) {
-        renter.debit(getRent());
-        getOwner().credit(getRent());
+    public void chargeRent(Player renter) {
+        renter.pay(getOwner(), getRent());
     }
 
     /**
      * Getter for the current rent value of the property
      * @return the rent value of the proerty
      */
-    int getRent() {
+    public int getRent() {
         int total = getDefaultRent();
 
         if (getOwner().ownsSetFor(this) && !developed()) {
@@ -302,7 +305,7 @@ public class Property extends BoardSpace{
      * Gets the development cost of a property
      * @return development cost of a proerty
      */
-    int getDevelopmentCost() {
+    public int getDevelopmentCost() {
         return developmentCost;
     } 
 

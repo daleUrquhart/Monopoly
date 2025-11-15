@@ -4,6 +4,8 @@
  */
 package com.monopoly;
 
+import com.monopoly.boardspaces.Go;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -217,7 +219,7 @@ public class PlayerBuilder {
     void loadPlayersToGame(Game game) {
         game.setPlayerCount(playerCount);
 
-        for(int i = 0; i < playerCount; i++) game.addPlayer(new Player(takenNames.get(i), game.getGo(), takenPieces.get(i)));
+        for(int i = 0; i < playerCount; i++) game.addPlayer(new Player(takenNames.get(i), Go.getInstance(), takenPieces.get(i)));
     }
 
     private static void resizePiece(ImageView piece, int SIZE) {

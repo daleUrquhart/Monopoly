@@ -16,8 +16,9 @@ import javafx.scene.layout.GridPane;
 /**
  * Dice object class
  */
-final class Dice {
+public final class Dice {
 
+    
     /**
      * Path to resources directory
      */
@@ -26,7 +27,7 @@ final class Dice {
     /**
      * Random connection
      */
-    private final Random rand;
+    private final Random rand = new Random();
 
     /**
      * Stores roll 1 value
@@ -46,23 +47,35 @@ final class Dice {
     /**
      * Image for first die
      */
-    private final ImageView d1;
+    private ImageView d1;
 
     /**
      * Image for second die
      */
-    private final ImageView d2;
+    private ImageView d2;
 
     /**
-     * Default constructor for Dice
+     * Singleton dice instance
      */
-    Dice(GridPane d) {
-        System.out.println("\tInitializing dice...");
+    private static final Dice INSTANCE = new Dice();
+
+    /**
+     * Constructor for Dice
+     */
+    private Dice() {}
+
+    public void attachUI(GridPane pane) {
+        d1 = (ImageView) pane.getChildren().get(0);
+        d2 = (ImageView) pane.getChildren().get(1);
         setDice();
-        d1 = (ImageView) d.getChildren().get(0);
-        d2 = (ImageView) d.getChildren().get(1);
-        rand = new Random(); 
-        System.out.println("\tDice initialized");
+    }
+
+    /**
+     * Gets the singleton dice instance
+     * @return Dice instance for the game
+     */
+    public static Dice getInstance() {
+        return INSTANCE;
     }
 
     /**
@@ -92,7 +105,7 @@ final class Dice {
     /**
      * Gets the last roll of the dice
      */
-    int getRoll() {
+    public int getRoll() {
         return getD1()+getD2();
     }
 

@@ -12,6 +12,17 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.monopoly.boardspaces.BoardSpace;
+import com.monopoly.boardspaces.CardSpace;
+import com.monopoly.boardspaces.FreeParking;
+import com.monopoly.boardspaces.Go;
+import com.monopoly.boardspaces.GoToJail;
+import com.monopoly.boardspaces.Jail;
+import com.monopoly.boardspaces.Property;
+import com.monopoly.boardspaces.Railroad;
+import com.monopoly.boardspaces.TaxSpace;
+import com.monopoly.boardspaces.Utility;
+
 /**
  * High level handler class for Monopoly funcitons
  * 
@@ -90,7 +101,7 @@ public final class Game {
      * Gets the space index from map
      * @param index
      */
-    BoardSpace getSpace(int newSpace) {
+    public BoardSpace getSpace(int newSpace) {
         return map[newSpace];
     } 
 
@@ -98,12 +109,23 @@ public final class Game {
      * Setter method for player's location by BoardSpace
      * @param newLoc New location of player
      */
-    void movePlayerTo(Player p, int newSpaceID) {
+    public void movePlayerTo(int newSpaceID) {
         if(passedGo(newSpaceID)) newSpaceID -= getMap().length;
         BoardSpace newSpace = getSpace(newSpaceID);
-        p.getLocation().removeOccupant(p);
-        p.setLocation(newSpace);
-        newSpace.addOccupant(p);
+        current.getLocation().removeOccupant(current);
+        current.setLocation(newSpace);
+        newSpace.addOccupant(current);
+    }
+
+    /**
+     * Increments space id and updates position, no Go rewards
+     * @param offset numebr of spaces to move by
+     */
+    public void movePlayerBy(int offset) {
+        BoardSpace newSpace = getSpace(offset + current.getLocation().getId());
+        current.getLocation().removeOccupant(current);
+        current.setLocation(newSpace);
+        newSpace.addOccupant(current);
     }
 
     /**
@@ -132,7 +154,7 @@ public final class Game {
      * Gets array of all players
      * @return array of players
      */
-    ArrayList<Player> getPlayers() {
+    public ArrayList<Player> getPlayers() {
         return players;
     }
 
@@ -148,7 +170,7 @@ public final class Game {
      * Returns the current player
      * @return the current player
      */
-    Player getCurrentPlayer() {
+    public Player getCurrentPlayer() {
         return current;
     }
 
@@ -158,14 +180,7 @@ public final class Game {
      */
     int getTurnIndex() {
         return turnIndex;
-    } 
-
-    /**
-     * Gets the Go space
-     */
-    Go getGo() {
-        return (Go) getSpace(0);
-    }
+    }  
 
     /**
      * Gets the next player and increments turn index
@@ -180,17 +195,9 @@ public final class Game {
     /**
      * Gets the game dice
      */
-    Dice getDice() {
+    public Dice getDice() {
         return dice;
-    } 
- 
-    /**
-     * Gets the jail instance
-     * @return the jail instance for the game
-     */
-    Jail getJail() {
-        return (Jail) getSpace(10);
-    }
+    }  
 
     /**
      * Sets the player count
@@ -258,7 +265,7 @@ public final class Game {
                 
                 switch (type) {
                     case "Go":
-                        map[index] = new Go("Go", 0);
+                        map[index] = Go.getInstance();
                         break;
                     case "Property":
                         String[] rents = rentStructure.split(";");
@@ -276,21 +283,21 @@ public final class Game {
                         map[index] = new Utility(name, index, price, banker);
                         break;
                     case "Jail":
-                        map[index] = new Jail("Jail", 10);
+                        map[index] = Jail.getInstance();
                         break;
                     case "Tax":
                         int taxAmount = Integer.parseInt(action);
-                        map[index] = new Tax(name, index, taxAmount);
+                        map[index] = new TaxSpace(name, index, taxAmount);
                         break;
                     case "CardManager":
-                        map[index] = new CardManager(name, index,
+                        map[index] = new CardSpace(name, index,
                                 action.equals("Chance") ? getChanceDeck() : getCommunityChestDeck());
                         break;
                     case "FreeParking":
-                        map[index] = new FreeParking();
+                        map[index] = FreeParking.getInstance();
                         break;
                     case "GoToJail":
-                        map[index] = new GoToJail((Jail) map[10]);
+                        map[index] = GoToJail.getInstance();
                         break;
                 }
             }
@@ -383,20 +390,21 @@ public final class Game {
      * Handles actions for using a GOOJFC
      */
     void processJailCard() {
-            current.decrementJailCard();
-            getJail().removePlayer(current); 
-            current.resetJailTurns();
-            current.flipJailed(); 
+        current.decrementJailCard();
+        Jail.getInstance().removePlayer(current); 
+        current.resetJailTurns();
+        current.flipJailed(); 
     }
 
     /**
      * Handles actions for paying bail
      */
     void processBail() {
-            current.pay(Banker.getInstance(), getJail().getBail());
-            getJail().removePlayer(current);
-            current.resetJailTurns();
-            current.flipJailed(); 
+        Jail jail = Jail.getInstance();
+        current.pay(Banker.getInstance(), jail.getBail());
+        jail.removePlayer(current);
+        current.resetJailTurns();
+        current.flipJailed(); 
     }
 
     /**
@@ -406,32 +414,34 @@ public final class Game {
         int roll = getDice().roll(current);
         boolean isDoubles = getDice().doubles();
         if (isDoubles) {
-            getJail().removePlayer(current);
+            Jail.getInstance().removePlayer(current);
             current.resetJailTurns();
             current.flipJailed(); 
-            movePlayerTo(current, current.getLocation().getId() + roll); 
+            movePlayerTo(current.getLocation().getId() + roll); 
         } else {
             current.incrementJailTurns();
         }
         return isDoubles;
     }
 
-    void sendToJail(Player p) { 
-        movePlayerTo(p, getJail().getId());
+    public void sendToJail(Player p) { 
+        if (getDice().doubles()) {
+            increment(getTurnIndex());
+        }
+        Jail jail = Jail.getInstance();
+        movePlayerTo(jail.getId());
         p.flipJailed();
         p.resetDoubleCount(); 
-        getJail().addPlayer(p);
+        jail.addPlayer(p);
     }
 
     /**
      * Manages the actions for bankrupting given player by the current player 
      * Chance card makes each player pay current
      */
-    void bankruptPlayer(Player bankrupted, Entity bankrupter, GameController controller) {
+    public void bankruptPlayer(Player bankrupted, Entity bankrupter, GameController controller) {
         removePlayer(current);
         if (getPlayerCount() == 1) controller.handleWinner();
-        //else bankrupted.bankrupted(bankrupter, this, controller);
-        // Had to address possible null pointer of bankrupter
         else{ 
             if(bankrupter == null) throw new NullPointerException("Bankrupter is null");
 

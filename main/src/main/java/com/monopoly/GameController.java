@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer; 
+import java.util.function.Consumer;
+
+import com.monopoly.boardspaces.BoardSpace;
+import com.monopoly.boardspaces.Go;
+import com.monopoly.boardspaces.Jail;
+import com.monopoly.boardspaces.Property; 
 
 /**
  * Master class connecting Game and GameView tasks
@@ -15,7 +20,7 @@ import java.util.function.Consumer;
  * Responsible for: Prompting UI updates, 
  * Not responsible for: Handling game rules, using anything requiring JavaFX, 
  */
-class GameController {
+public class GameController {
 
     /**
      * Manages the game instance
@@ -172,6 +177,7 @@ class GameController {
             view.getMessagePane().showMessage(
                 winner.getName() + " wins " + auction.getProperty().getName() +" for $" + auction.getHighestBid());
             buy(winner, Banker.getInstance(), auction.getProperty(), auction.getHighestBid(), game, view.getMessagePane());
+            mp.displayCurrent(winner, this);
         } else {
             view.getMessagePane().showMessage("No one bid. Property remains unsold.");
         }
@@ -313,13 +319,10 @@ class GameController {
         int newSpaceID = roll + current.getLocation().getId(); 
 
         // Passed Go
-        if(game.passedGo(newSpaceID)) {
-            game.getGo().reward(current);
-            mp.showMessage("\nYou passed Go! Here is $200.");
-        }
+        if(game.passedGo(newSpaceID)) Go.getInstance().onLand(current, game).execute(this); 
 
         // Assign new location
-        game.movePlayerTo(current, newSpaceID);
+        game.movePlayerTo(newSpaceID);
         BoardSpace newSpace = current.getLocation();
         mp.showMessage("\nYou rolled a "+roll+" and landed on "+newSpace.getName());   
 
@@ -355,7 +358,7 @@ class GameController {
     /**
      * Handles the turn of landing on an unwoned property
      */
-    void handleUnownedProperty() {  
+    public void handleUnownedProperty() {  
         Player current = game.getCurrentPlayer();
         Property property = (Property) current.getLocation();
 
@@ -394,7 +397,7 @@ class GameController {
     /**
      * Handles game logic for landing on an owned property
      */
-    void handleOwnedProperty() { 
+    public void handleOwnedProperty() { 
         Player current = game.getCurrentPlayer();
         Property property = (Property) current.getLocation();
         Entity owner = property.getOwner(); 
@@ -435,7 +438,7 @@ class GameController {
      * @return Whether or not they were freed by doubles
      */
     void startJailTurn() {  
-        Jail jail = game.getJail();
+        Jail jail = Jail.getInstance();
         Player current = game.getCurrentPlayer();
         int bail = jail.getBail();
  
@@ -496,7 +499,7 @@ class GameController {
      */
     void handleMaxJailTurns(GameView view, GameController controller) { 
         Player current = game.getCurrentPlayer();
-        Jail jail = game.getJail();
+        Jail jail = Jail.getInstance();
         int bail = jail.getBail();
  
         // If Player have a jail card, use it for them
@@ -529,17 +532,28 @@ class GameController {
         Player current = game.getCurrentPlayer();
         BoardSpace location = current.getLocation();   
 
-        location.onLand(current, game, mp, this);
+        location.onLand(current, game).execute(this);
+        
         mp.displayCurrent(current, this);
         enableRoll();     
         processNextTurn(); 
     } 
 
     /**
+     * Gets the GameView
+     */
+    public GameView getView() {return view;}
+
+    /**
+     * Gets teh GameController
+     */
+    public Game getModel() {return game;}
+
+    /**
      * Handles game end state
      * Just deletes dice so nobody can go anymore to gracefully 'end game'
      */
-    void handleWinner() { 
+    public void handleWinner() { 
         mp.clear(); 
         mp.showMessage(game.getCurrentPlayer().getName() + " wins the game!");
         mp.displayCurrent(game.getCurrentPlayer(), this);

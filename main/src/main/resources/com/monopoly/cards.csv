@@ -19,9 +19,9 @@ Advance to Boardwalk.,0,,,,,,TRUE,39,,,,,TRUE,,,Null
 Advance to Go (Collect $200).,0,,,,,,TRUE,0,,,,,TRUE,,,Null
 Advance to Illinois Avenue. If you pass Go  collect $200.,0,,,,,,TRUE,24,,,,,TRUE,,,Null
 Advance to St. Charles Place. If you pass Go  collect $200.,0,,,,,,TRUE,11,,,,,TRUE,,,Null
-Advance to the nearest Railroad. If unowned  you may buy it from the Bank. If owned  pay  owner twice the rental to which they are otherwise entitled.,0,,,,,,,,,,,,TRUE,,TRUE,RR
 Advance to the nearest Railroad. If unowned  you may buy it from the Bank. If owned  pay owner twice the rental to which they are otherwise entitled.,0,,,,,,,,,,,,TRUE,,TRUE,RR
- Advance token to nearest Utility. If unowned  you may buy it from the Bank. If owned  throw dice and pay owner a total ten times amount thrown.,0,,,,,,,,,,,,TRUE,,TRUE,Utility
+Advance to the nearest Railroad. If unowned  you may buy it from the Bank. If owned  pay owner twice the rental to which they are otherwise entitled.,0,,,,,,,,,,,,TRUE,,TRUE,RR
+Advance token to nearest Utility. If unowned  you may buy it from the Bank. If owned  pay owner a total ten times amount last thrown.,0,,,,,,,,,,,,TRUE,,TRUE,Utility
 Bank pays you dividend of $50.,50,,,,,,,,,,,,TRUE,,,Null
 Get Out of Jail Free.,0,TRUE,,,,,,,,,,,TRUE,,,Null
 Go Back 3 Spaces.,0,,,,,,,,TRUE,-3,,,TRUE,,,Null

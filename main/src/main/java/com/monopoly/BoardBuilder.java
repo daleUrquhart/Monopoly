@@ -14,7 +14,7 @@ import javafx.scene.layout.StackPane;
 /**
  * BoardBuilder manages construction of the board
  */
-class BoardBuilder {
+public class BoardBuilder {
     
     /**
      * Path to resources directory
@@ -142,7 +142,9 @@ class BoardBuilder {
             dicePane.add(d2View, 1, 0);
             dicePane.setHgap(10);
             dicePane.setAlignment(Pos.CENTER); 
-            game.setDice(new Dice(dicePane)); 
+            
+            Dice.getInstance().attachUI(dicePane);
+            game.setDice(Dice.getInstance()); 
         } catch(Exception e) {
             System.out.println("Dice piece not found in BoardBuilder. Full message:\n"+e);
         }
