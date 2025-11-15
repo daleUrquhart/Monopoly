@@ -20,6 +20,11 @@ class Card {
     private final String name; 
 
     /**
+     * Flat Rate
+     */
+    private final boolean credit;
+
+    /**
      * Indicates whether the card is a "Get Out of Jail Free" card.
      */
     private final boolean getOutOfJail;
@@ -90,6 +95,11 @@ class Card {
     private final String nearestType; 
 
     /**
+     * Payment ammount 
+     */
+    private final int payment;
+
+    /**
      * Constructor to initialize a Card object with all fields.
      *
      * @param name The name or description of the card.
@@ -112,10 +122,12 @@ class Card {
      * @param nearest Whether or not the player is advancing to the nearest specified proeprty type
      * @param nearestType The nearest property type specified
      */
-    Card(String name, int payment, boolean getOutOfJail, boolean goToJail, boolean perDevelopment, int houseCost, int hotelCost,
+    Card(String name, boolean credit, int payment, boolean getOutOfJail, boolean goToJail, boolean perDevelopment, int houseCost, int hotelCost,
                 boolean advanceTo, int location, boolean advanceBy, int steps, boolean perPlayer, int playerAmount,
                 boolean chance, boolean communityChest, boolean nearest, String nearestType) {
         this.name = name; 
+        this.payment = payment;
+        this.credit = credit;
         this.getOutOfJail = getOutOfJail;
         this.goToJail = goToJail;
         this.perDevelopment = perDevelopment;
@@ -133,6 +145,20 @@ class Card {
     }
 
     /**
+     * Returns whether the card is jsut a credit or not
+     */
+    Boolean isCredit() {
+        return credit;
+    }
+
+    /**
+     * Returns the payment amount
+     */
+    int getPayment() {
+        return payment;
+    }
+
+    /**
      * Gets the name or description of the card.
      *
      * @return the name of the card
@@ -141,6 +167,7 @@ class Card {
         return name;
     }
  
+
     /**
      * Checks if the card is a "Get Out of Jail Free" card.
      *
@@ -294,6 +321,7 @@ class Card {
                 try {
                     Card card = new Card(
                             values[0],
+                            isCreditCheck(values),
                             Integer.parseInt(values[1]),
                             Boolean.parseBoolean(values[2]),
                             Boolean.parseBoolean(values[3]),
@@ -321,6 +349,20 @@ class Card {
             }
         }
         return ccDeck;
+    }
+
+    private static Boolean isCreditCheck(String[] values) {
+        Boolean result = true;
+        if(Integer.parseInt(values[1]) != 0) {
+            for(int i = 2; i < 15; i++) {
+                if(!values[i].isEmpty()) { result = false; break; }
+            }
+        } else result = false;
+
+        if(result) {
+            result = values[15].isEmpty() && values[16].equals("Null");
+        }
+        return result;
     }
 
     /**
@@ -352,6 +394,7 @@ class Card {
                 try {
                     Card card = new Card(
                             values[0],
+                            isCreditCheck(values),
                             Integer.parseInt(values[1]),
                             Boolean.parseBoolean(values[2]),
                             Boolean.parseBoolean(values[3]),

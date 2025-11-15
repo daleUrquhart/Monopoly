@@ -25,6 +25,15 @@ public final class Go extends BoardSpace {
     }
 
     /**
+     * Handles events for landing on square
+     */
+    @Override
+    void onLand(Player current, Game game, MessagePane mp, GameController controller) {
+        reward(current);
+        mp.showMessage("Congratulations, " + current.getName() + "! You made it to Go! ");
+    }
+
+    /**
      * Gets teh reward for reaching Go
      */
     static int getReward() {

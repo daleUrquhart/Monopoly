@@ -91,6 +91,11 @@ abstract public class BoardSpace {
     }
 
     /**
+     * Elaborated on by special squares
+     */
+    abstract void onLand(Player current, Game game, MessagePane mp, GameController controlle);
+
+    /**
      * Removes an occupant
      * @param p Player occupant to be removed
      */

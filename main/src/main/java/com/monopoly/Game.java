@@ -14,6 +14,10 @@ import java.util.List;
 
 /**
  * High level handler class for Monopoly funcitons
+ * 
+ * Strictly contains game state logic and rules
+ * Does NOT manipulate game state management, UI updates
+ * 
  */
 public final class Game {
 
@@ -21,12 +25,6 @@ public final class Game {
      * Path to resources
      */
     private static final String PATH = "/com/monopoly/";
-
-
-    /**
-     * Bail amount
-     */
-    private static final int BAIL = 50;
 
     /**
      * Collection of boardspaces in order
@@ -92,10 +90,22 @@ public final class Game {
      * Gets the space index from map
      * @param index
      */
-    BoardSpace getSpace(int i) {
-        return map[i];
+    BoardSpace getSpace(int newSpace) {
+        return map[newSpace];
+    } 
+
+    /**
+     * Setter method for player's location by BoardSpace
+     * @param newLoc New location of player
+     */
+    void movePlayerTo(Player p, int newSpaceID) {
+        if(passedGo(newSpaceID)) newSpaceID -= getMap().length;
+        BoardSpace newSpace = getSpace(newSpaceID);
+        p.getLocation().removeOccupant(p);
+        p.setLocation(newSpace);
+        newSpace.addOccupant(p);
     }
-   
+
     /**
      * Gets the board map
      * @return the board map
@@ -103,14 +113,6 @@ public final class Game {
     BoardSpace[] getMap() {
         return map;
     } 
-
-    /**
-     * gets the bail amount
-     * @return the bail amount
-     */
-    int getBail() {
-        return BAIL;
-    }
 
     /**
      * Gets the chance deck
@@ -166,15 +168,13 @@ public final class Game {
     }
 
     /**
-     * Gets the next player and increments turn index, returns null if there is only one non-bankrupt player left
-     * @return Player next player to play
+     * Gets the next player and increments turn index
      */
-    Player getNextPlayer() {  
+    void advanceTurn() {  
         getCurrentPlayer().flipCurrent();
         turnIndex = increment(turnIndex);
         current = getPlayers().get(turnIndex);
         current.flipCurrent();
-        return getCurrentPlayer();
     }
 
     /**
@@ -259,9 +259,6 @@ public final class Game {
                 switch (type) {
                     case "Go":
                         map[index] = new Go("Go", 0);
-                        for(Player p : getPlayers()) {
-                            p.setLocation(map[index]);  
-                        }
                         break;
                     case "Property":
                         String[] rents = rentStructure.split(";");
@@ -313,6 +310,7 @@ public final class Game {
     void removePlayer(Player p) {
         getPlayers().remove(p);
         playerCount--;
+        if(p.equals(current)) setCurrentPlayer(getPlayers().get(0));
     }
 
     /**
@@ -351,7 +349,6 @@ public final class Game {
     boolean passedGo(int newSpace) { 
         boolean passedGo = false;
         if(newSpace >= getMap().length) { 
-            getGo().reward(current); 
             passedGo = true;
         }
         return passedGo;
@@ -361,22 +358,20 @@ public final class Game {
      * Checks is player got doubles or not
      * @return No doubles: 0, Not third doubles: -1, Third doubles: 1
      */
-    int handleDoubles() {
+    int getDoublesOutcome() {
         int result;
 
-        if (getDice().doubles()) {
-            // If third doubles in a row, go to jail
-            if (current.getDoubleCount() == 2) { 
-                getJail().addPlayer(current);
+        if (getDice().doubles()) { 
+            if (current.getDoubleCount() == 2) {  
+                sendToJail(current);
                 result = 1;
-            }
-            // If not third doubles in a row, roll again
-            else {
+            } 
+            else { 
                 current.incrementDoubleCount();
                 decrementTurnIndex();
                 result = -1;
             }
-        } else {
+        } else { 
             current.resetDoubleCount();
             result = 0;
         }
@@ -385,183 +380,94 @@ public final class Game {
     }
 
     /**
-     * Handles the logic of a location a player just landed on
-     * @return true for if the location is a purchasable property, or false if the llocatin is a special square
+     * Handles actions for using a GOOJFC
      */
-    boolean isProperty() {
-        BoardSpace location = getCurrentPlayer().getLocation();
-        boolean result;
-        
-        result = location instanceof Property;  
-        
-        return result;
-    } 
-     
-    /**
-     * Handles game logic for landing on a properyt 
-     * If property is not owned, then buy or auction else charge rent
-     */
-    boolean isOwned() { 
-        Property location = (Property) getCurrentPlayer().getLocation(); 
-        boolean result = location.getOwner() instanceof Player;
-        
-        return result;
+    void processJailCard() {
+            current.decrementJailCard();
+            getJail().removePlayer(current); 
+            current.resetJailTurns();
+            current.flipJailed(); 
     }
 
     /**
-     * Handles a roll of the dice
+     * Handles actions for paying bail
      */
-    void handleRoll(GameView view, GameController controller) {   
-        MessagePane mp = view.getMessagePane();
-        mp.clearMessages();
+    void processBail() {
+            current.pay(Banker.getInstance(), getJail().getBail());
+            getJail().removePlayer(current);
+            current.resetJailTurns();
+            current.flipJailed(); 
+    }
 
-        // Make roll and assign the new location
-        int roll = getDice().roll(getCurrentPlayer());  
-        int newSpace = roll + current.getLocation().getId();
-
-        mp.showMessage("You rolled a "+roll+"!");
-        
-        // Show new player's data
-        mp.clearCurrentPlayerDisplay();
-        mp.updateCurrentPlayerDislay(current, controller);
-
-        // Passed Go
-        if(passedGo(newSpace)) {
-            mp.showMessage("\nYou passed Go! Here is $200.");
-            newSpace -= getMap().length;
-        }
-
-        // Assign new location
-        current.setLocation(getSpace(newSpace));
-
-        // Handle Doubles logic 
-        switch (handleDoubles()) {
-            case -1:
-                mp.showMessage("\nYou rolled doubles, you get to roll again after your turn! ");
-                break; 
-            case 1:
-                mp.showMessage("\nThat was your third doubles, go to jail! ");
-                break; 
-            default:
-                break;
-        }
-
-        // Handle the logic for landing on the new location 
-        if(isProperty()) {
-            if(isOwned()) {
-                controller.handleOwnedProperty();
-            } else {
-                controller.handleUnownedProperty();
-            } 
+    /**
+     * Handles actions for trying for doubles in jail
+     */
+    Boolean processDoubles() {
+        int roll = getDice().roll(current);
+        boolean isDoubles = getDice().doubles();
+        if (isDoubles) {
+            getJail().removePlayer(current);
+            current.resetJailTurns();
+            current.flipJailed(); 
+            movePlayerTo(current, current.getLocation().getId() + roll); 
         } else {
-            controller.handleSpecialSquare(this, controller);
+            current.incrementJailTurns();
         }
-        
-        // Assign next player
-        getNextPlayer();  
+        return isDoubles;
+    }
 
-        // Is the next player in jail?
-        if(current.inJail()) {
-            controller.handleJailTurn(view, this); // removing this conditional is so far untested. See earleir versions for old code if jail has  
-        }                                           // issues for going again after being freed by doubles
+    void sendToJail(Player p) { 
+        movePlayerTo(p, getJail().getId());
+        p.flipJailed();
+        p.resetDoubleCount(); 
+        getJail().addPlayer(p);
     }
 
     /**
-     * Gets the options a player has for their turn in jail
-     * @return Integer list of numbers corrosponding to turn actions
+     * Manages the actions for bankrupting given player by the current player 
+     * Chance card makes each player pay current
      */
-    public List<Integer> getValidJailChoices() {
-        List<Integer> choices = new ArrayList<>();
-        if (current.canAfford(getBail())) {
-            choices.add(1); // Pay fine
-        }
-        choices.add(2); // Try for doubles
-        if (current.ownsJailCard()) {
-            choices.add(3); // Use 'Get Out of Jail Free' card
-        }
-        return choices;
-    }
+    void bankruptPlayer(Player bankrupted, Entity bankrupter, GameController controller) {
+        removePlayer(current);
+        if (getPlayerCount() == 1) controller.handleWinner();
+        //else bankrupted.bankrupted(bankrupter, this, controller);
+        // Had to address possible null pointer of bankrupter
+        else{ 
+            if(bankrupter == null) throw new NullPointerException("Bankrupter is null");
 
-    /**
-     * Handle the choice selected from the options in getValidJailChoices()
-     * @param choice Choice selected
-     * @return Whether or not they were freed by doubles
-     */
-    public boolean handleJailChoice(int choice, MessagePane mp) {
-        boolean freedByDoubles = false;
-        Jail jail = getJail(); 
-
-        switch (choice) {
-            case 1: { // Pay fine
-                current.debit(getBail());
-                jail.removePlayer(current);
-            }
-            case 2: { // Try for doubles
-                int roll = getDice().roll(current);
-                freedByDoubles = getDice().doubles();
-
-                if (freedByDoubles) {
-                    jail.removePlayer(current);
-                    current.setLocation(getSpace(current.getLocation().getId() + roll));
-                } else {
-                    incrementFailedJailTurn(mp);
+            if(bankrupter instanceof Banker) {
+                for (Property p : bankrupted.getProperties()) {
+                    controller.handleAuction(p);
                 }
             }
-            case 3: { // Use 'Get Out of Jail Free' card
-                current.decrementJailCard();
-                jail.removePlayer(current);
+            
+            else {
+                for(Property p : bankrupted.getProperties()) {
+                    while(p.developed()) p.sellDevelopment();
+                    bankrupter.addProperty(p);
+                    //If property is mortgaged give option to pay it off
+                    if(p.isMortgaged()) {
+                        controller.handleMortgagedPurchase((Player) bankrupter, p); 
+                    }    
+                }  
             }
+            
+            bankrupted.pay(bankrupter, bankrupted.getBalance()); 
         }
+    }  
 
-        return freedByDoubles;
+    /**
+     * Pays a mortgage balance using given player and property
+     */
+    void payMortgage(Player player, Property property) {
+        player.pay(Banker.getInstance(), (int) Math.ceil(property.getMortgageValue() * 1.1));
+        property.unMortgage();   
     }
 
     /**
-     * Increments the amount of failed jail turns
+     * Pays owed interest on amortgaged property
      */
-    private void incrementFailedJailTurn(MessagePane mp) {
-        current.incrementJailTurns();
-        if (current.getJailedTurns() == 3) {
-            handleMaxJailTurns(mp);
-        }
+    void payMortgageIntrest(Player player, Property property) {
+        player.pay(Banker.getInstance(), (int) Math.ceil(property.getMortgageValue() * 0.1));
     }
-
-    /**
-     * Handles the event of maximum jail turns reached
-     */
-    private void handleMaxJailTurns(MessagePane mp) {
-        Jail jail = getJail();
-        if (current.ownsJailCard()) {
-            current.decrementJailCard();
-            jail.removePlayer(current);
-        } else if (current.canAfford(getBail())) {
-            current.debit(getBail());
-            jail.removePlayer(current);
-        } else {
-            handleBankruptcy(mp);
-        }
-    }
-
-    /**
-     * Handles the bankruptcy state of a player by eitehr liquidating assets or sending them  into bankruptcy
-     */
-    private void handleBankruptcy(MessagePane mp) {
-        if (current.liquidate(getBail(), this)) {
-            current.debit(getBail());
-            getJail().removePlayer(current);
-        } else {
-            bankruptPlayer(mp);
-        }
-    }
-
-    /**
-     * Manages the actions for bankrupting a player
-     */
-    void bankruptPlayer(MessagePane mp) {
-        if (getPlayerCount() == 2) {
-            removePlayer(current);
-        } else {
-            getCurrentPlayer().bankrupted(Banker.getInstance(), this, mp);
-        }
-    } 
 }

@@ -51,6 +51,13 @@ final class CardManager extends BoardSpace {
         chance = deck.get(0).isChance();
     }
 
+    @Override
+    void onLand(Player current, Game game, MessagePane mp, GameController controller) {
+        Card card = draw(game);
+        mp.showMessage("Welcome to the "+current.getLocation().getName()+" square! Your card draw is:\n"+ card.toString());
+        CardManager.handle(card, game, controller, mp); 
+    }
+
     /**
      * Draws a card from deck, handles all events resulting from the card, retruns the card instance drawn
      */
@@ -69,36 +76,67 @@ final class CardManager extends BoardSpace {
     /**
      * Handles the actions described on drawn
      */
-    static void handle(Card card, Game game, GameController controller) {
+    static void handle(Card card, Game game, GameController controller, MessagePane mp) {
         int total;
         Player p = game.getCurrentPlayer();
         Utility utility;
         Railroad rr;
-        Banker banker = Banker.getInstance(); 
-        if(card.isGetOutOfJail())   p.addJailCard();
-        if(card.isGoToJail())       game.getJail().addPlayer(p);
-        if(card.isAdvanceBy())      {
-            p.setLocation(game.getSpace(p.getLocation().getId() + card.getSteps()));
-            game.isProperty(); // Idk why these game.isProperty() lines are here, but just gonna leave them
+        Banker banker = Banker.getInstance();  
+
+        // Card credits teh player (a possibly negetive) amount
+        if(card.isCredit()) {
+            if(card.getPayment() < 0) {
+                if(p.canAfford(card.getPayment() * -1)) {
+                    p.credit(card.getPayment());
+                } else if(p.getNetWorth() > (card.getPayment() * -1)) {
+                    mp.clearMessages();
+                    mp.showMessage(card.getName()+"\nYou can not afford the "+card.getPayment()*-1+" payment, liquidate some assets.");
+                    mp.showAck("Submit Payment", () -> handle(card, game, controller, mp));
+                } else game.bankruptPlayer(p, banker, controller);
+            }
+            else p.credit(card.getPayment());
         }
+        // Card bequeaths a get out of jail free card unto the player 
+        if(card.isGetOutOfJail())   p.addJailCard();
+        // Card sends player to jail
+        if(card.isGoToJail())       game.sendToJail(p);
+        // Card advances player advanceBy steps
+        if(card.isAdvanceBy())      {
+            game.movePlayerTo(p, p.getLocation().getId() + card.getSteps());
+            if(p.getLocation() instanceof Property) controller.handleProperty() ;
+            else controller.handleSpecialSquare();
+        }
+        // Card proceeds player to specific property
         if(card.isAdvanceTo())      {
             int starting = p.getLocation().getId();
-            p.setLocation(game.getSpace(card.getLocation())); 
-            if(starting > p.getLocation().getId()) {
-                game.getGo().reward(p);
-            }
-            game.isProperty();
+            game.movePlayerTo(p, card.getLocation());
+            if(starting > p.getLocation().getId()) game.getGo().reward(p);
         }
+        // Card requires a payment to every player
         if(card.isPerPlayer())      {
             for(Player player : game.getPlayers()) {player.credit(card.getPlayerAmount());}
-            p.debit(card.getPlayerAmount() * game.getPlayerCount());
+            int ammount = card.getPlayerAmount() * game.getPlayerCount();
+
+            if(p.canAfford(ammount)) {
+                for(Player payee : game.getPlayers()) {
+                    if(p.equals(payee)) continue;
+                    p.pay(payee, ammount);
+                }
+            } else if(p.getNetWorth() > ammount) {
+                mp.clearMessages();
+                mp.showMessage(card.getName()+"\nYou can not afford the "+ammount+" payment, liquidate some assets.");
+                mp.showAck("Submit Payment", () -> handle(card, game, controller, mp));
+            } else game.bankruptPlayer(p, banker, controller);  
         }
+        // Card requires a payment to the bank for every development
         if(card.isPerDevelopment()) {
             total = p.getTotalHouses() * card.getHouseCost() + p.getTotalHotels() * card.getHotelCost();
-            p.debit(total);
-            banker.credit(total);
+            if(p.canAfford(total)) {
+                p.pay(Banker.getInstance(), total);
+            }
+            else game.bankruptPlayer(p, banker, controller);
         }
-        
+        // Card proceeds player to nearest RailRoad or Utility
         if(card.isNearest())        {
             if(card.getNearestType().equals("RR"))           {
                 // If owned charge chance rent, else give option to buy
@@ -106,8 +144,13 @@ final class CardManager extends BoardSpace {
                 int space = p.getLocation().getId() + 5 - (p.getLocation().getId() % 5);
                 space += space % 10 == 0 ? 5 : 0;
                 space -= space > 40 ? 40 : 0;
-                //Handle new location
-                p.setLocation(game.getSpace(space));
+
+                // Move to the new location
+                int starting = p.getLocation().getId();
+                game.movePlayerTo(p, space);
+                if(starting > p.getLocation().getId()) game.getGo().reward(p);
+
+                // Handle new location
                 rr = (Railroad) p.getLocation();
                 if(!rr.getOwner().equals(banker) && !rr.getOwner().equals(p)) {rr.chargeChanceRent(p); } 
                 else if(rr.getOwner().equals(banker))                         {controller.handleUnownedProperty();}
@@ -119,7 +162,12 @@ final class CardManager extends BoardSpace {
                 // If owned charge chance rent, else give option to buy
                 //Find the nearest utility
                 utility = p.getLocation().getId() > 11 && p.getLocation().getId() < 28 ? (Utility) game.getSpace(28) : (Utility) game.getSpace(12);
-                p.setLocation(utility);
+                
+                // Move to the new location
+                int starting = p.getLocation().getId();
+                game.movePlayerTo(p, utility.getId());
+                if(starting > p.getLocation().getId()) game.getGo().reward(p);
+
                 //Handle new locaiton
                 if(!utility.getOwner().equals(banker) && !utility.getOwner().equals(p)) {utility.chargeChanceRent(p);} 
                 else if(utility.getOwner().equals(banker))                              {controller.handleUnownedProperty();}

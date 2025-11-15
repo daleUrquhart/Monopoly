@@ -69,7 +69,7 @@ final class Player extends Entity {
      * @param name Player's name
      */
     Player(String name, Go location, ImageView piece) {
-        super(name, 1500); 
+        super(name); 
         this.piece = piece;
         ID = ID_COUNTER++;
         setInitialLocation(location);
@@ -158,16 +158,13 @@ final class Player extends Entity {
     void setInitialLocation(BoardSpace location) { 
         this.location = location;
         location.addOccupant(this);
-    }
-    
+    } 
+
     /**
-     * Setter method for player's location by BoardSpace
-     * @param newLoc New location of player
+     * Moves the player to a new location
      */
     void setLocation(BoardSpace location) {
-        location.removeOccupant(this);
         this.location = location;
-        location.addOccupant(this);
     }
 
     /**
@@ -189,46 +186,7 @@ final class Player extends Entity {
      */
     void incrementDoubleCount() {
         doubleCount += 1;
-    }
-
-    /**
-     * Liquidates assets to achieve a set balance
-     * @param required balance
-     */
-    boolean liquidate(int required, Game game) { 
-        return true;
-    } 
-
-    /**
-     * Handles bankruptcy casued by anotehr player
-     * @param bankrupter the player who caused the bankruptcy
-     */
-    void bankrupted(Entity bankrupter, Game game, MessagePane mp) {  
-
-        for(Property p : getProperties()) {
-            bankrupter.addProperty(p);
-            //If property is mortgaged give option to pay it off
-            if(p.isMortgaged()) {
-                System.out.print(p.toString()+"\nIs mortgaged, would you like to unmortgage it now, or do so later? ");
-                mp.getBoolInput("Bankruptcy", p.toString()+" is mortgaged.", 
-                    "Would you like to unmortgage it now, for "+(int) ((double) p.getMortgageValue() * 1.1)+", or wait until later and only pay the current intrest owing of "+(int) ((double) p.getMortgageValue() * 0.1)+".",
-                    (result) -> {
-                        if(result) {
-                            p.unMortgage();
-                        } else {
-                            System.out.println("Property remains mortgaged, intrest only payment made. ");
-                            bankrupter.debit((int) ((double) p.getMortgageValue() * 0.1));
-                        }
-                    }
-                ); 
-            }    
-            //Sell any developments back to the bank, balance goes to bankrupted player and is transfered over at the bottom of method along with balance at bankruptcy
-            while(p.developed()) p.sellDevelopment();
-        }  
-
-        bankrupter.credit(getBalance());
-        game.removePlayer(this);
-    } 
+    }  
 
     /**
      * Sets the players last roll
@@ -307,18 +265,8 @@ final class Player extends Entity {
      */
     void incrementJailTurns() {
         jailTurns += 1;
-    }
-
-    /**
-     * Handles the purchase of a new proerty for the plaeyr bought by landing property added to players properties in setOwner
-     * @param newProperty the property to buy
-     * @return whetehr or not the player could afford the purchase
-     */
-    void buy(Property newProperty) { 
-        debit(newProperty.getPrice());
-        newProperty.setOwner(this);  
-    } 
-
+    }  
+ 
     @Override
     public String toString() {
         String out = "Name: "+getName()+"\nLocation: "+getLocation().getName()+"\nBalance: "+getBalance()+"\nGet out of jail free cards: "+getJailCardNum()+"\nIn Jail? "+inJail()+"\nNet Worth: "+getNetWorth();//+"\n---------- Properties ----------\n";

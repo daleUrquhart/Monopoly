@@ -90,6 +90,13 @@ final class Dice {
     }
 
     /**
+     * Gets the last roll of the dice
+     */
+    int getRoll() {
+        return getD1()+getD2();
+    }
+
+    /**
      * get roll from dice 1
      */
     int getD1() {

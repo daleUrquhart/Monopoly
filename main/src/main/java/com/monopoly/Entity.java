@@ -34,11 +34,16 @@ class Entity {
     private final ArrayList<Property> properties; 
 
     /**
+     * Starting balance of a player
+     */
+    private final int STARTING_BAL = 1000;
+
+    /**
      * Player super constructor
     */
-    Entity(String name, int balance) {
+    Entity(String name) {
         this.name = name;
-        this.balance = balance;
+        this.balance = name.equals("Banker") ? Integer.MAX_VALUE : STARTING_BAL;
         netWorth = balance;
         properties = new ArrayList<>();
     } 
@@ -67,6 +72,15 @@ class Entity {
         return netWorth;
     } 
     
+    /**
+     * Handles complete transaction between two players
+     * @param adjustment
+     */
+    void pay(Entity payee, int amount) {
+        debit(amount);
+        payee.credit(amount);  
+    }
+
     /**
      * Adjusts networth of the player
     * @param adjustment the adjustment value of the networth 
@@ -138,43 +152,6 @@ class Entity {
     * @param newProperty the property to be added
     */
     void addProperty(Property newProperty) {
-        properties.add(newProperty);
-        //newProperty.setOwner(this);
-    }
-
-    /**
-     * Handles the purchase of a new proerty for the plaeyr bought by auction
-    * @param newProperty the property to buy
-    * @param bid the amount the player bid for the property  
-    */
-    void buy(Property p, int bid, Game game, MessagePane mp) { 
-        //This is all only unmortgaging or paying intrest
-        if(p.isMortgaged()) {
-            //Can we afford to unmortgage it
-            if(canAfford((int) (bid+p.getMortgageValue()*1.1))) {
-                System.out.print(p.toString() + "\nIs mortgaged, would you like to unmortgage it now, or do so later? ");
-                mp.getBoolInput("Buy", p.getName()+" is mortgaged, would you like to unmortgage it now, or pay it later?", 
-                    "UnMortgage price: "+(int) (p.getMortgageValue() * 1.1)+"Intreset only price: "+(int) (p.getMortgageValue() * 0.1)+".",
-                    (result) -> {if(result) {
-                        p.unMortgage();
-                    } else {
-                        System.out.println("Property remains mortgaged, intrest only payment made. ");
-                        debit((int) (p.getMortgageValue() * 0.1));
-                    }}
-                );
-            }
-            //Pay only mandatory intrest
-            else {
-                System.out.println("Property remains mortgaged, cannot afford to unmortgaged, only payment made. ");
-                debit((int) (p.getMortgageValue() * 0.1));
-            }
-        }
-
-        //Bid transactioning
-        debit(bid);
-        p.getOwner().credit(bid);
-        p.getOwner().removeProperty(p); //this cannot be the best way to do that...
-        p.setOwner(this);
-        addProperty(p);  
+        properties.add(newProperty); 
     } 
 }

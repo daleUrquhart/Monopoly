@@ -93,6 +93,29 @@ class BoardBuilder {
         }
     }
 
+    /**
+     * Builds the jailPane
+     */
+    GridPane buildBars(Game game, GridPane mainPane) { 
+        GridPane barsPane = new GridPane(); 
+ 
+        try {
+            InputStream barsStream =  getClass().getResourceAsStream(PATH + "bars.png");
+            Image bars = new Image(barsStream);
+            ImageView barView = new ImageView(bars);
+            barView.setFitHeight(MID * SCALE);
+            barView.setFitWidth(MID * SCALE); 
+
+            // GridPane for bars
+            barsPane = new GridPane();
+            barsPane.add(barView, 0, 0);
+            barsPane.setHgap(10);
+            barsPane.setAlignment(Pos.CENTER); 
+        } catch(Exception e) {
+            System.out.println("Jail bars not found in BoardBuilder. Full message:\n"+e);
+        }
+        return barsPane;
+    }
 
     /**
      * Builds the dice 

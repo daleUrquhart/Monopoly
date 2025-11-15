@@ -17,6 +17,11 @@ public class GameView {
     private GridPane dicePane;
 
     /**
+     * Jail Pane holding the image of jail abrs for user to interact with on a jail turn
+     */
+    private GridPane jailPane;
+
+    /**
      * Display pane (Space right of the board)
      */
     private final MessagePane messagePane;
@@ -45,6 +50,14 @@ public class GameView {
     }
 
     /**
+     * Assigns the jailPane to Gameview
+     * @param centerPane
+     */
+    void setJailPane(GridPane jailPane) {
+        this.jailPane = jailPane;
+    }
+
+    /**
      * Assigns teh center pane fo the board
      * @param center center pane of the board
      */
@@ -54,15 +67,7 @@ public class GameView {
         } catch(Exception e) {
             System.err.println(e);
         } 
-    }
-    
-    /**
-     * Gets the GridPane holding the dice
-     * @return the GridPane holding the dice
-     */
-    GridPane getDicePane() {
-        return dicePane;
-    }
+    } 
 
     /**
      * Gets the Display Pane mainting all data to the right of the board
@@ -86,23 +91,61 @@ public class GameView {
      */
     GridPane getMainPane() {
         return mainPane;
-    } 
-
-    /**
-     * Removes die form center pane
-     */
-    void removeDice() {
-        centerPane.getChildren().remove(dicePane); 
-    }
+    }  
 
     /**
      * Adds dice to the center
      */
     void showDice() {
-        try {
-            centerPane.getChildren().add(dicePane);
-        } catch (Exception e) {
-            System.out.println(e);
-        } 
+        centerPane.getChildren().add(dicePane); 
+    }
+
+    /**
+     * Gets the GridPane holding the dice
+     * @return the GridPane holding the dice
+     */
+    GridPane getDicePane() {
+        return dicePane;
+    }
+
+    /**
+     * Hides the dice pane from view
+     */
+    private void hideDice() {
+        centerPane.getChildren().remove(dicePane);
+    }
+
+    /**
+     * hides jailBars
+     */
+    private void hideJail() {
+        centerPane.getChildren().remove(jailPane);
+    }
+
+    /**
+     * Hides whatever prompt is on the centerPane
+     */
+    void hidePrompt() {
+        if(centerPane.getChildren().contains(getDicePane())) hideDice();
+        else if(centerPane.getChildren().contains(getJailPane())) hideJail();
+    } 
+
+    void deletePrompts() {
+        jailPane = null;
+        dicePane = null;
+    }
+
+    /**
+     * Shows jail bars on the center
+     */
+    void showJail() {
+        centerPane.getChildren().add(jailPane);
+    }
+
+    /**
+     * Returns the jailPane instance
+     */
+    GridPane getJailPane() {
+        return jailPane;
     }
 }

@@ -8,6 +8,11 @@ import java.util.ArrayList;
 public class Jail extends BoardSpace{ 
 
     /**
+     * Bail amount
+     */
+    private static final int BAIL = 50;
+
+    /**
      * Games's players 
      */
     ArrayList<Player> jailedPlayers;
@@ -19,25 +24,32 @@ public class Jail extends BoardSpace{
         super(name, id);
         this.jailedPlayers = new ArrayList<>();
     }
-
-    /**
-     * Adds a player to the jailedPlayers
-     * @param p player to ad to jailedPlayers
-     */
-    void addPlayer(Player p) {
-        jailedPlayers.add(p);
-        p.flipJailed();
-        p.resetDoubleCount();
-        p.setLocation(this); 
+    @Override
+    void onLand(Player current, Game game, MessagePane mp, GameController controller) {
+        if(current.inJail()) mp.showMessage("You are in jail.");
+        else if (hasJailed()) mp.showMessage("Welcome to the visitation center. Say hello to your friends. ");
+        else mp.showMessage("Welcome to the visitation center. Better stay on the right side of these bars...");
     }
 
     /**
-     * Removes a player form jailed players
+     * gets the bail amount
+     * @return the bail amount
+     */
+    int getBail() {
+        return BAIL;
+    }
+
+    void addPlayer(Player p) {
+        jailedPlayers.add(p);
+    }
+
+    /**
+     * Removes a player from jailed players
+     * Resets player's jailed turns and places their jail status to false
      * @param p player to remove from jailed players
      */
     void removePlayer(Player p) {
         jailedPlayers.remove(p);
-        p.flipJailed(); 
     }
 
     /**

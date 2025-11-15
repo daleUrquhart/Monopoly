@@ -98,6 +98,9 @@ public class Property extends BoardSpace{
         this.price = price; 
     } 
 
+    @Override 
+    void onLand(Player current, Game game, MessagePane mp, GameController controller) {}
+
     /**
      * Gets the size of the set of properties of the same type
      * @return the size of the set of properties of the same type
@@ -115,12 +118,13 @@ public class Property extends BoardSpace{
     }
 
     /**
-     * Assign a new owner to the property
-     * Also adds the property to the new owner's list of properties
+     * Assign owner to newOwner
+     * Adds property to owner's properties
+     * Adjusts networth of property to newOwner's networth 
      * @param newOwner the new owner of the property
      */
     final void setOwner(Entity newOwner) {
-        if(getOwner() != null) {getOwner().adjustNetWorth((int) (getPrice() / -2));}
+        if(getOwner() != null) {getOwner().adjustNetWorth((getPrice() / -2));}
         
         owner = newOwner;
         getOwner().addProperty(this);
@@ -132,9 +136,6 @@ public class Property extends BoardSpace{
      * @return true for if the action was succesful
      */
     void mortgage() { 
-        getOwner().adjustNetWorth((int) (getPrice() / 2) * -1);
-        getOwner().credit(getMortgageValue());
-        Banker.getInstance().debit(getMortgageValue());
         mortgaged = true;
     }
 
@@ -142,9 +143,6 @@ public class Property extends BoardSpace{
      * Unmortgages a property
      */
     void unMortgage() {
-        getOwner().adjustNetWorth((int) (getPrice() / 2));
-        getOwner().debit((int) (getMortgageValue() * 1.1));
-        Banker.getInstance().credit((int) (getMortgageValue() * 1.1));
         mortgaged = false;
     } 
 
@@ -224,17 +222,33 @@ public class Property extends BoardSpace{
     /**
      * Sells a development on the property
      */
-    void sellDevelopment() {
-        Banker.getInstance().debit((int) (getDevelopmentCost() / 2));
-        getOwner().credit((int) (getDevelopmentCost() / 2));
-        getOwner().adjustNetWorth((int) (getDevelopmentCost() / -2));
-
+    void sellDevelopment() { 
+        Banker.getInstance().pay(getOwner(), getDevelopmentCost() / 2);
         if(hasHotel()) {
             houses = 4;
             hotel = false;
-        } else {
+        } else if(getHouses() > 0){
             houses--;
         }
+    }
+
+    /**
+     * Checks if a property on is owned by the Banker or a Player 
+     */
+    boolean isOwned() { 
+        return getOwner() instanceof Player;
+    }
+
+    /**
+     * Handles the complete logic of selling of a property to another player
+     * @param newOwner
+     * @param oldOwner
+     */
+    void sellTo(Entity newOwner, int amount) {
+        newOwner.pay(getOwner(), amount); 
+        owner.removeProperty(this);
+        owner = newOwner;
+        getOwner().addProperty(this);  
     }
 
     /**

@@ -82,13 +82,71 @@ Game flow UX improvements
 ## BugLog and implmentation notes
 ### 2 Player Tests
 
-### Rolls enabled on Jail turn, bankrupting broken
-- roll always works, but works when its not supposed to on jail tunrs
-- Turns are not rotating, might be due to bankruptcey not working right (removes player from rotation, but doesnt remove them elsewheres??)
-  - Balances can go into negetive....
-- Once you own like 14 properties the display kinda breaks
+### TODO
+- Something is off with turn balance display, havent traced yet to see what. Possibly performing payments on next player instead of current in some cases.
+  - TODO
+  - Deffinetly charging next player. processNextTurn() calls advanceTurn() but processNextTurn is called before payments are made in turn handling, this causes next player to make any payments handled in a showAck that results in a player.pay() (Ex: Pay bail)
+  - the pay bail case is especially fatal since it flips the jail status of next player leaving current in jail and sending next player to jail
 
-### <Fied> Bad implementation of jail, dice not always re-enabled
+- Implement property scrolling view once 10 are owned
+  - TODO
+- ChargeChanceRent in RR and Utility does not check for bankruptcy maybe make rent a game method and have a bool param for if its a chance rent because it also does not update mp correctly
+  - TODO
+- Utility Rent Does not work
+  - TODO 
+- Tech debt, Read over classes, ensure good method documentations at least
+  - TODO
+- bankruptcy is not efficently hadnled, look at putting the showAck bankruptcy logic in pay() and maybe move pay() to Game from Player
+  - credit and debit should also be made private and just pay the banker when required
+  - TODO
+
+### Several fixes (see notes)
+- Note:
+  - The refactoring turned out to be alot larger than expected. Big changes in here, likely introduced bugs, though no new ones noted after initial testing
+
+- (Done) handleMaxJailTurns() does not get next player
+  - startJailTurn called handleMaxJailTurns and returns afterwards, without calling processNextTurn. Enabled rolls in hMJT and called pNT after teh hMJT call in sJT
+- (Done) Several Chance / CC card issues
+  - Player did not advance on cards that moved the player
+    - Fixed with new game.movePlayerTo method (also handles roll effects now)
+  - Cards that placed a credit onto the player did not do so
+    - This case was not accounted for at all, added logic to Card and CardManager to account for it
+  - For each player payments just debited the current player and didnt send anything to the other players
+    - Added a for loop to pay every player that isnt current
+  
+- (Done) Implementation of turn abstraction lead to rising concerns regarding encapsulation. 
+  - methods and logic was traded between classes to be delegated more appropriatley
+  - Some method were transplanted entirely, some had components delegated elsewhere (Ex: Game should not manipulate state, only contain state data)
+  - Removed forgotten redundancies (Ex: Looped and added players to Go in Game.buildMap, but players are no longer created befor this so it was really looping through the 0 players and doing nothing)
+
+- (Done) Jail logic is good, but prompts jail turn handling for the enxt player if theyre in jail while the previous is managing their assets after a roll.
+  - Issue stems from how handleJailTurn is called in hadnleRoll, added an extra layer to turn handling with a processNextTurn method in Game
+  - Process next turn calls either handleTurn or handleJailTurn, each showing dice or jail bars respectively
+  - Once Image is clicked, either handleRoll or startJailTurn begins
+  - This solution is more inline with event-driven programming style
+
+- (Done) When bankrupter is Banker, auction off all properties
+  - Implemented a Banker condition in Player.bankrupted for this
+
+- (Done) Streanline transactions between player 
+  - Created transaction method instead of calling debit & credit at every spot of purchase
+
+- (Done) Liquidation logic is bad, needs overhaul
+  - Implemented a showAck event handler to recurse method on a button click to see if required balance is now present
+
+- (Done) Auctioning and private sale needs tweaks. Auctioning adds property twice
+  - Double propreties was a Entity.buy() issue.. fixed..
+
+- (Done) Fix logic in handleSpecialSquare, especially bankruptcy checks
+  - Fixed with showAck handler, and more thourough logic
+
+- (Done) Roll always works, but works when its not supposed to on jail tunrs
+  - Issue due to how handleRoll() handles jail turns. Fixed with processNextTurn(above)
+
+- (Done) Fix bankruptcy and implement win handling (- balances currently possible)
+  - Fixed by implementing a handleWinner and deleting dice
+
+### (Fixed) Bad implementation of jail, dice not always re-enabled
 - Complete overhaul of jail logic, similair to boolInput implementation, looks nice but doesnt enforce no rolling when not supposed to 
 - After updating roll enabling logic dice no longer lock when not supposed to. Minor bug with jail (above)
 - Dice work after landing on unowned proeprty adn a chance card that elts you buy a property, but that it
@@ -98,21 +156,21 @@ Game flow UX improvements
 - Duct-taped a solution to phasing out reminaing GameView methods moved to message pane, could probably be made better by giving a message pane isntance to Player and Game with how much its used in there, but that raises coupling concerns
 - Game crashes and behaves poorly on jail actions
 
-### <Fixed> Illegal dice rolls allowed, poor display of properties after purchasing a new one
+### (Fixed) Illegal dice rolls allowed, poor display of properties after purchasing a new one
 - Fix worked as expected
 - Will also make the small fix of displaying a newly purchased property after submission of purchase before new roll by reloading player display after purchase
 - Proposed solution works, dice only roll when expected now
 - It is possible for dice rolls to be done during a turn action, look at fixing by disabling dice until it is ready
 
 
-### <Fixed> Making message flow display more intuitive
+### (Fixed) Making message flow display more intuitive
 Auction and property purchase done, required additions to Message pane and abstracting Auction logic. Alot of changes here will make this a sub-commit to solving this problem
 
 Ok acks for CC and chance, etc. 
 Yes and no buttons for landing on a property purchase prompt
 We are clearing the pane in playerbuilding which is probably removing message and player displays from the thang
 
-### <Fixed> Delegate message display logic into ists own API to clean up GameView
+### (Fixed) Delegate message display logic into ists own API to clean up GameView
 Addresssed, implemented new API, fixed property option logic aswell
 
 Not giving an opportunity to manage assets after a player rolls. I want after a player rolls they get a chnce to manage assets after buying a new property and then the next player can manage theuir assets once the dice are rolled again
@@ -144,7 +202,7 @@ Currently modified with GameView.showMessage
         
     }
 
-### <Fixed> Player pieces not loading to respective corners
+### (Fixed) Player pieces not loading to respective corners
 Both pieces loading to top left of tile (Seems to be just for Go tile on player creation)
 Pieces overlap in first player's spot, likely done in Player constructor
 Traces to setInitialLocation from Player constructor
@@ -169,7 +227,7 @@ Looks like players were lost and attempted to index the empty player list
         at com.monopoly/com.monopoly.Game.handleRoll(Game.java:466)
         at com.monopoly/com.monopoly.GameController.lambda$0(GameController.java:52)
 
-#### <Fixed> First player went twice for after first round
+#### (Fixed) First player went twice for after first round
 After second turn, player 2 went 
 This was probably just doubles after further testing, closed.
 

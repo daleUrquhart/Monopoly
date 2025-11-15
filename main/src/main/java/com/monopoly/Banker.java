@@ -20,7 +20,7 @@
      * Private constructor to prevent instantiation from other classes
      */
     private Banker() {
-        super("Banker", Integer.MAX_VALUE);
+        super("Banker");
     }
 
     /**

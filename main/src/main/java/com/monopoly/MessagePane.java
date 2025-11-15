@@ -35,9 +35,26 @@ public class MessagePane extends GridPane {
         currentPlayerDisplay = new VBox();
         messageDisplay = new VBox();
 
-        this.add(messageDisplay, 0, 0); 
-        this.add(currentPlayerDisplay, 0, 1); 
+        add(messageDisplay, 0, 0); 
+        add(currentPlayerDisplay, 0, 1); 
+    } 
+
+    void addDisplays() {
+        add(messageDisplay, 0, 0); 
+        add(currentPlayerDisplay, 0, 1);
     }
+
+    void clear() {
+        clearMessages();
+        clearCurrentPlayerDisplay();
+    }
+
+    /**
+     * Clears Current player display
+     */
+    void clearCurrentPlayerDisplay() {
+        currentPlayerDisplay.getChildren().clear();
+    } 
 
     /**
      * Clears turn related messages form messagePane
@@ -47,40 +64,35 @@ public class MessagePane extends GridPane {
     } 
 
     /**
-     * Displays the information on DispPane of main player below any messages pertaining to current turn
-     * @param p Current player
-     */
-    void displayCurrent(Player current, GameController controller) { 
-        updateCurrentPlayerDislay(current, controller);
-    }
-
-    void addDisplays() {
-        this.add(messageDisplay, 0, 0); 
-        this.add(currentPlayerDisplay, 0, 1);
-    }
-
-    /**
-     * Clears Current player display
-     */
-    void clearCurrentPlayerDisplay() {
-        currentPlayerDisplay.getChildren().clear();
-    }
-
-    /**
      * Adds a message to the top of the message board
      * @param message Message to be displayed
      */
     void showMessage(String message) {  
-        messageDisplay.getChildren().add(new Label(message));  
-    } 
+        Label label = new Label(message);
+        label.setWrapText(true);
+        messageDisplay.getChildren().add(label);
+    }  
     
     /**
-     * Helps with re-enabling dice after a certain point is reached
+     * Displays a button with a message, Runnable executed on click
      */
-    void showMessage(String message, Runnable onClose) {
-        messageDisplay.getChildren().add(new Label(message));  
-        onClose.run();
+    void showAck(String message, Runnable onClick) {
+        Label label = new Label(message);
+        label.setWrapText(true);
+
+        Button ack = new Button("OK");
+
+        VBox container = new VBox(10, label, ack);
+        container.setAlignment(Pos.CENTER_LEFT);
+
+        ack.setOnAction(e -> {
+            messageDisplay.getChildren().remove(container);
+            onClick.run();
+        });
+
+        messageDisplay.getChildren().add(container);
     }
+
 
     /**
      * Displays a yes/no question inline using radio buttons instead of a popup.
@@ -151,9 +163,9 @@ public class MessagePane extends GridPane {
      * @param context Context text explaining the choice
      * @param callback Code to execute with the result (true for yes, false for no)
      */
-    void getBoolInput(String title, String header, String context, Consumer<Boolean> callback) {
+    void getBoolInput(String context, Consumer<Boolean> callback) {
         // Create question label
-        Label question = new Label(title + "\n" + header + "\n" + context);
+        Label question = new Label(context);
         question.setWrapText(true);
 
         // Create radio buttons
@@ -187,8 +199,8 @@ public class MessagePane extends GridPane {
         });
     }
 
-    void getChoiceInput(String title, String header, String context, List<String> options, Consumer<String> callback) {
-        Label question = new Label(title + "\n" + header + "\n" + context);
+    void getChoiceInput(String context, List<String> options, Consumer<String> callback) {
+        Label question = new Label(context);
         question.setWrapText(true);
 
         HBox buttonBox = new HBox(10);
@@ -209,12 +221,12 @@ public class MessagePane extends GridPane {
         }
     }
 
-    
-    
     /**
-     * Gets the GUI Player display in a VBox
+     * Displays the information on DispPane of main player below any messages pertaining to current turn
+     * @param p Current player
      */
-    void updateCurrentPlayerDislay(Player current, GameController controller) {
+    void displayCurrent(Player current, GameController controller) { 
+        clearCurrentPlayerDisplay();
         Label data = new Label(current.getName() + "'s turn\nBalance:" + current.getBalance() + "\n"); 
         HBox pBox;
         Button buyDevelopmentBoxB, mortgageB, unMortgageB, auctionB, privateSaleB, sellB, sellDevelopmentB; 
@@ -231,21 +243,21 @@ public class MessagePane extends GridPane {
             // lengthy check for buying development
             if(current.ownsSetFor(p) && current.canAfford(p.getDevelopmentCost()) && !p.hasHotel() && !p.isMortgaged()) {
                 buyDevelopmentBoxB = new Button("Buy Development");
-                buyDevelopmentBoxB.setOnMouseClicked(e -> p.buyDevelopment());
+                buyDevelopmentBoxB.setOnMouseClicked(e -> {p.buyDevelopment(); displayCurrent(current, controller);});
                 pBox.getChildren().add(buyDevelopmentBoxB);
             } 
  
             if(p.isMortgaged()) {                                     // Mortgaged, offer to unmortgage it
                 unMortgageB = new Button("Un Mortgage");
-                unMortgageB.setOnMouseClicked(e -> p.unMortgage());
+                unMortgageB.setOnMouseClicked(e -> {p.unMortgage(); displayCurrent(current, controller);});
                 pBox.getChildren().add(unMortgageB);
             } else if(!p.developed()){                                // Not mortgaged, if no development offer to mortgage
                 mortgageB = new Button("Mortgage property");
-                mortgageB.setOnMouseClicked(e -> p.mortgage());
+                mortgageB.setOnMouseClicked(e -> {p.mortgage(); displayCurrent(current, controller);});
                 pBox.getChildren().add(mortgageB);
             } else {                                                  // Not mortgaged, has developemtn, offer to sell one
                 sellDevelopmentB = new Button("Sell development");
-                sellDevelopmentB.setOnMouseClicked(e -> p.sellDevelopment());
+                sellDevelopmentB.setOnMouseClicked(e -> {p.sellDevelopment(); displayCurrent(current, controller);});
 
                 
 
@@ -255,14 +267,14 @@ public class MessagePane extends GridPane {
             // Cant have developments, can be mortgaged
             if(!p.developed()) {
                 sellB = new Button("Sell to Bank");
-                sellB.setOnMouseClicked(e -> current.sell(p)); 
+                sellB.setOnMouseClicked(e -> {current.sell(p); displayCurrent(current, controller);}); 
                 
                 // The next two are handled with controller as it requires additional inputs
                 auctionB = new Button("Auction");
-                auctionB.setOnMouseClicked(e -> controller.handleAuction(p)); 
+                auctionB.setOnMouseClicked(e -> {controller.handleAuction(p); displayCurrent(current, controller);}); 
 
                 privateSaleB = new Button("Private Sale");
-                privateSaleB.setOnMouseClicked(e -> controller.handlePrivateSale(p));
+                privateSaleB.setOnMouseClicked(e -> {controller.handlePrivateSale(p); displayCurrent(current, controller);});
                 pBox.getChildren().addAll(sellB, auctionB, privateSaleB);
             }  
 
