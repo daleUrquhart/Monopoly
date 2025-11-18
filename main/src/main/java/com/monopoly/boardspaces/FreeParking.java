@@ -4,8 +4,8 @@
 
 package com.monopoly.boardspaces;
 
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Player;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
 
@@ -37,7 +37,7 @@ public final class FreeParking extends BoardSpace {
      * @param game Game instance
      * @return Message to be displayed
      */
-    @Override public GameEvent onLand(Player current, Game game) {    
+    @Override public GameEvent onLand(Player current, GameModel game) {    
         return new MessageEvent("Welcome to free parking. Take a breather. ");
     }
 }

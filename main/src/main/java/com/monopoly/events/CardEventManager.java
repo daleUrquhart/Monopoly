@@ -1,16 +1,17 @@
 package com.monopoly.events;
 
-import com.monopoly.Banker;
 import com.monopoly.Card;
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.boardspaces.Go;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Player;
 
 /**
  * Factory for converting a Card into a GameEvent
  */
 public final class CardEventManager { 
 
-    public static GameEvent createCardEvent(Card card, Player player, Game game) {
+    public static GameEvent createCardEvent(Card card, Player player, GameModel game) {
         CompositeEvent result = new CompositeEvent();
         Banker banker = Banker.getInstance();
 
@@ -26,7 +27,10 @@ public final class CardEventManager {
 
         // Move events
         if (card.isAdvanceBy()) result.add(new MoveByEvent(card.getSteps()));
-        if (card.isAdvanceTo()) result.add(new MovementEvent(card.getLocation()));
+        if (card.isAdvanceTo()) {
+            result.add(new MovementEvent(card.getLocation()));
+            if(game.passedGo(player.getLocation().getId()+card.getLocation())) result.add(Go.getInstance().onLand(player, game));
+        }
 
         // Per-player payments
         if (card.isPerPlayer()) result.add(new PaymentPerPlayerEvent(card.getPlayerAmount()));
@@ -37,7 +41,9 @@ public final class CardEventManager {
         // Nearest property movement
         if (card.isNearest()) {
             switch (card.getNearestType()) {
-                case "RR": result.add(new MoveToNearestRREvent());
+                case "RR": 
+                    result.add(new MoveToNearestRREvent());
+                    break;
                 case "Utility": result.add(new MoveToNearestUtilityEvent());
             }
         }

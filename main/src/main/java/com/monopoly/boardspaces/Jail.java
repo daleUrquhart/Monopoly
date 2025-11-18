@@ -2,8 +2,8 @@ package com.monopoly.boardspaces;
 
 import java.util.ArrayList;
 
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Player;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
 
@@ -34,7 +34,7 @@ public class Jail extends BoardSpace{
         super("Jail", 10);
         this.jailedPlayers = new ArrayList<>();
     }
-    @Override public GameEvent onLand(Player current, Game game) {
+    @Override public GameEvent onLand(Player current, GameModel game) {
         String message;
         if(current.inJail()) message = "You are in jail.";
         else if (hasJailed()) message = "Welcome to the visitation center. Say hello to your friends. ";

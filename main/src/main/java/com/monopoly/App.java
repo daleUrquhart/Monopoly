@@ -19,7 +19,7 @@ public class App extends Application {
      */
     @Override
     public void start(Stage stage) {
-        Game game = new Game();
+        GameModel game = new GameModel();
         System.out.println("GAME INITIALIZED\n\n");
         
         GameView view = new GameView();

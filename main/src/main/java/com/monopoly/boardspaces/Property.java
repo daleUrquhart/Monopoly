@@ -7,11 +7,15 @@
 
 package com.monopoly.boardspaces;
 
-import com.monopoly.Banker;
-import com.monopoly.Entity;
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Entity;
+import com.monopoly.entities.Player;
+import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
+import com.monopoly.events.MessageEvent;
+import com.monopoly.events.PaymentEvent;
+import com.monopoly.events.UnownedPropertyEvent;
 
 /**
  * Property object class
@@ -104,8 +108,19 @@ public class Property extends BoardSpace{
         this.price = price; 
     } 
 
-    @Override public GameEvent onLand(Player current, Game game) {return null;}
-
+    @Override public GameEvent onLand(Player current, GameModel game) {
+        CompositeEvent event = new CompositeEvent();
+        if(getOwner().equals(Banker.getInstance())) {
+            event.add(new UnownedPropertyEvent());
+        } 
+        else if(!getOwner().equals(current)) {
+            event.add(new MessageEvent("Laned on "+getName()+", "+getOwner().getName()+" owns this. Rent owed is "+getRent()));
+            event.add(new PaymentEvent(current, getOwner(), getRent()));
+        }
+        else event.add(new MessageEvent("Laned on "+getName()+", You already own this property.")); 
+        return event;
+    }
+//Launa was here you stinkey poopy butt lol xD 6...7..!!!!!
     /**
      * Gets the size of the set of properties of the same type
      * @return the size of the set of properties of the same type
@@ -248,11 +263,12 @@ public class Property extends BoardSpace{
      * @param newOwner
      * @param oldOwner
      */
-    public void sellTo(Entity newOwner, int amount) {
-        newOwner.pay(getOwner(), amount); 
+    public GameEvent sellTo(Entity newOwner, int amount) {
+        PaymentEvent event = new PaymentEvent(newOwner, getOwner(), amount); 
         owner.removeProperty(this);
         owner = newOwner;
         getOwner().addProperty(this);  
+        return event;
     }
 
     /**

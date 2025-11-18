@@ -9,8 +9,8 @@ package com.monopoly.boardspaces;
 
 import java.util.ArrayList;
 
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Player;
 import com.monopoly.events.GameEvent;
 
 import javafx.geometry.Pos;
@@ -97,7 +97,7 @@ public abstract class BoardSpace {
     /**
      * Elaborated on by special squares
      */
-    public abstract GameEvent onLand(Player current, Game game);
+    public abstract GameEvent onLand(Player current, GameModel game);
 
     /**
      * Removes an occupant

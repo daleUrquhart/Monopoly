@@ -4,9 +4,9 @@
 
 package com.monopoly.boardspaces;
 
-import com.monopoly.Banker;
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Player;
 import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
@@ -30,10 +30,10 @@ public final class TaxSpace extends BoardSpace {
         this.amount = amount; 
     }
 
-    @Override public GameEvent onLand(Player current, Game game) { 
+    @Override public GameEvent onLand(Player current, GameModel game) { 
         CompositeEvent e = new CompositeEvent();
         e.add(new MessageEvent("Uh oh! You have been charged "+getName()+"! You were charged $" + getTax() + "!"));
-        e.add(new PaymentEvent(Banker.getInstance(), current, amount)); 
+        e.add(new PaymentEvent(current, Banker.getInstance(), amount)); 
         return e;
     }
  

@@ -40,7 +40,7 @@ public class BoardBuilder {
     /**
      * Builds the map destinations iteravely using indexed filenames
      */ 
-    void buildTiles(Game game, GridPane pane) { 
+    void buildTiles(GameModel game, GridPane pane) { 
         int count = -1;
         int col = 10;
         int row = 10;
@@ -96,7 +96,7 @@ public class BoardBuilder {
     /**
      * Builds the jailPane
      */
-    GridPane buildBars(Game game, GridPane mainPane) { 
+    GridPane buildBars(GameModel game, GridPane mainPane) { 
         GridPane barsPane = new GridPane(); 
  
         try {
@@ -120,7 +120,7 @@ public class BoardBuilder {
     /**
      * Builds the dice 
      */
-    GridPane buildDice(Game game, GridPane pane) {
+    GridPane buildDice(GameModel game, GridPane pane) {
         GridPane dicePane = new GridPane(); 
  
         try {
@@ -146,7 +146,7 @@ public class BoardBuilder {
             Dice.getInstance().attachUI(dicePane);
             game.setDice(Dice.getInstance()); 
         } catch(Exception e) {
-            System.out.println("Dice piece not found in BoardBuilder. Full message:\n"+e);
+            System.out.println("Error occurred during buildDice() in BoardBuilder. Full message:\n"+e);
         }
         return dicePane;
     }
@@ -154,7 +154,7 @@ public class BoardBuilder {
     /**
      * Builds the center of the board
      */
-    StackPane buildCenter(Game game, GridPane pane) {
+    StackPane buildCenter(GameModel game, GridPane pane) {
         StackPane center = new StackPane();
         try {
             // Center tile 

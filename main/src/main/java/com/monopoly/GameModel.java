@@ -22,6 +22,13 @@ import com.monopoly.boardspaces.Property;
 import com.monopoly.boardspaces.Railroad;
 import com.monopoly.boardspaces.TaxSpace;
 import com.monopoly.boardspaces.Utility;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Entity;
+import com.monopoly.entities.Player;
+import com.monopoly.events.AuctionEvent;
+import com.monopoly.events.CompositeEvent;
+import com.monopoly.events.GameEvent;
+import com.monopoly.events.PaymentEvent;
 
 /**
  * High level handler class for Monopoly funcitons
@@ -30,7 +37,7 @@ import com.monopoly.boardspaces.Utility;
  * Does NOT manipulate game state management, UI updates
  * 
  */
-public final class Game {
+public final class GameModel {
 
     /**
      * Path to resources
@@ -82,7 +89,7 @@ public final class Game {
      * Game constructor
      * Builds Chance and CC decks then builds game map
      */
-    Game(){ 
+    GameModel(){ 
         turnIndex = 0;   
         players = new ArrayList<>();
         
@@ -103,30 +110,7 @@ public final class Game {
      */
     public BoardSpace getSpace(int newSpace) {
         return map[newSpace];
-    } 
-
-    /**
-     * Setter method for player's location by BoardSpace
-     * @param newLoc New location of player
-     */
-    public void movePlayerTo(int newSpaceID) {
-        if(passedGo(newSpaceID)) newSpaceID -= getMap().length;
-        BoardSpace newSpace = getSpace(newSpaceID);
-        current.getLocation().removeOccupant(current);
-        current.setLocation(newSpace);
-        newSpace.addOccupant(current);
-    }
-
-    /**
-     * Increments space id and updates position, no Go rewards
-     * @param offset numebr of spaces to move by
-     */
-    public void movePlayerBy(int offset) {
-        BoardSpace newSpace = getSpace(offset + current.getLocation().getId());
-        current.getLocation().removeOccupant(current);
-        current.setLocation(newSpace);
-        newSpace.addOccupant(current);
-    }
+    }  
 
     /**
      * Gets the board map
@@ -181,16 +165,6 @@ public final class Game {
     int getTurnIndex() {
         return turnIndex;
     }  
-
-    /**
-     * Gets the next player and increments turn index
-     */
-    void advanceTurn() {  
-        getCurrentPlayer().flipCurrent();
-        turnIndex = increment(turnIndex);
-        current = getPlayers().get(turnIndex);
-        current.flipCurrent();
-    }
 
     /**
      * Gets the game dice
@@ -340,12 +314,15 @@ public final class Game {
     }
 
     /**
-     * Increments the turn index
-     * @return the new turn index
+     * Setter method for player's location by BoardSpace
+     * @param newLoc New location of player
      */
-    int increment(int turnIndex) {  
-        turnIndex = turnIndex == (getPlayerCount() - 1) ? 0 : turnIndex + 1; 
-        return turnIndex;
+    public void movePlayerTo(int newSpaceID) {
+        if(newSpaceID >= getMap().length) newSpaceID -= getMap().length;
+        BoardSpace newSpace = getSpace(newSpaceID);
+        current.getLocation().removeOccupant(current);
+        current.setLocation(newSpace);
+        newSpace.addOccupant(current);
     }
 
     /**
@@ -353,12 +330,20 @@ public final class Game {
      * @param newSpace Current location plus roll
      * @return Whether or not the player passsed go
      */
-    boolean passedGo(int newSpace) { 
-        boolean passedGo = false;
-        if(newSpace >= getMap().length) { 
-            passedGo = true;
-        }
-        return passedGo;
+    public boolean passedGo(int newSpace) {  
+        return newSpace > getMap().length;
+    }
+
+    RollResult rollDice() {
+        int roll = getDice().roll(current);  
+        int newSpaceID = roll + current.getLocation().getId();  
+
+        // Passed Go
+        boolean go = passedGo(newSpaceID);
+
+        // Assign new location
+        movePlayerTo(newSpaceID);
+        return new RollResult(go, current.getLocation(), roll, getDoublesOutcome());
     }
 
     /**
@@ -384,12 +369,111 @@ public final class Game {
         }
 
         return result;
+    }  
+
+
+    /**
+     * Increments space id by given offset and updates position, no Go rewards
+     * @param offset numebr of spaces to move by
+     */
+    public void movePlayerBy(int offset) {
+        BoardSpace newSpace = getSpace(offset + current.getLocation().getId());
+        current.getLocation().removeOccupant(current);
+        current.setLocation(newSpace);
+        newSpace.addOccupant(current);
     }
 
     /**
+     * Gets the next player and increments turn index
+     */
+    void advanceTurn() {  
+        getCurrentPlayer().flipCurrent();
+        turnIndex = increment(turnIndex);
+        current = getPlayers().get(turnIndex);
+        current.flipCurrent();
+    }
+
+    /**
+     * Increments the turn index
+     * @return the new turn index
+     */
+    int increment(int turnIndex) {  
+        turnIndex = turnIndex == (getPlayerCount() - 1) ? 0 : turnIndex + 1; 
+        return turnIndex;
+    }
+
+    /**
+     * Manages the actions for bankrupting given player by the current player 
+     * Chance card makes each player pay current
+     */
+    public BankruptResult processBankruptcy(Player bankrupted, Entity bankrupter) {
+
+        if (bankrupter == null) throw new NullPointerException("Bankrupter cannot be null");
+
+        CompositeEvent auction = new CompositeEvent();
+        CompositeEvent transferred = new CompositeEvent();
+        List<Property> needDecision = new ArrayList<>();
+        List<Property> owned = new ArrayList<>(bankrupted.getProperties());
+        removePlayer(bankrupted);
+
+        // Case 1: Banker bankrupts a player, all properties go to auction
+        if (bankrupter instanceof Banker) {
+            for(Property p : owned) auction.add(new AuctionEvent(p, getPlayers()));
+            return new BankruptResult(
+                    bankrupted,
+                    bankrupter,
+                    transferred,
+                    needDecision,
+                    auction,
+                    true,                 
+                    getPlayerCount()
+            );
+        }
+
+        // Case 2: Another player bankrupts this player
+        for (Property p : owned) {
+            while (p.developed()) p.sellDevelopment();
+
+            // Build list of events to execute
+            transferred.add(p.sellTo(bankrupter, 0));
+
+            // If mortgaged, controller will decide
+            if (p.isMortgaged()) needDecision.add(p);
+        }
+
+        bankrupted.pay(bankrupter, bankrupted.getBalance());
+
+        return new BankruptResult(
+                bankrupted,
+                bankrupter,
+                transferred,
+                needDecision,
+                auction,
+                false,           
+                getPlayerCount()
+        );
+    }
+ 
+
+    /**
+     * Pays a mortgage balance using given player and property
+     */
+    public GameEvent payMortgage(Player player, Property property) {
+        property.unMortgage();   
+        return new PaymentEvent(player, Banker.getInstance(), (int) Math.ceil(property.getMortgageValue() * 0.1));
+    }
+
+    /**
+     * Pays owed interest on amortgaged property
+     */
+    public GameEvent payMortgageIntrest(Player player, Property property) {
+        return new PaymentEvent(player, Banker.getInstance(), (int) Math.ceil(property.getMortgageValue() * 0.1));
+    }
+ 
+    /**
      * Handles actions for using a GOOJFC
      */
-    void processJailCard() {
+    public void processJailCard() {
         current.decrementJailCard();
         Jail.getInstance().removePlayer(current); 
         current.resetJailTurns();
@@ -399,12 +483,52 @@ public final class Game {
     /**
      * Handles actions for paying bail
      */
-    void processBail() {
+    public void processBail() {
         Jail jail = Jail.getInstance();
-        current.pay(Banker.getInstance(), jail.getBail());
+        // new PaymentEvent(current, Banker.getInstance(), jail.getBail()).execute(controller); Should not do it like this, maybe return a game event or smth but id ont think controller should beuse d in the model
         jail.removePlayer(current);
         current.resetJailTurns();
         current.flipJailed(); 
+    } 
+
+    public JailOutcome processMaxJailTurns() { 
+        Jail jail = Jail.getInstance();
+
+        if (current.ownsJailCard()) {
+            processJailCard();
+            return JailOutcome.USED_CARD;
+        }
+
+        int bail = jail.getBail();
+
+        if (current.canAfford(bail)) {
+            processBail();
+            return JailOutcome.PAID_BAIL;
+        }
+
+        if (current.getNetWorth() >= bail) {
+            return JailOutcome.NEEDS_LIQUIDATION;
+        }
+
+        return JailOutcome.BANKRUPT;
+    }
+
+    public JailOutcome processJailChoice(JailChoice choice) {
+        switch(choice) {
+            case TRY_FOR_DOUBLES:
+                if(processDoubles()) return JailOutcome.FREED_BY_DOUBLES;;
+                return JailOutcome.NO_DOUBLES;
+
+            case PAY_BAIL:
+                processBail();
+                return JailOutcome.PAID_BAIL;
+
+            case USE_CARD:
+                processJailCard();
+                return JailOutcome.USED_CARD;
+            
+            default: return null;
+        } 
     }
 
     /**
@@ -433,51 +557,5 @@ public final class Game {
         p.flipJailed();
         p.resetDoubleCount(); 
         jail.addPlayer(p);
-    }
-
-    /**
-     * Manages the actions for bankrupting given player by the current player 
-     * Chance card makes each player pay current
-     */
-    public void bankruptPlayer(Player bankrupted, Entity bankrupter, GameController controller) {
-        removePlayer(current);
-        if (getPlayerCount() == 1) controller.handleWinner();
-        else{ 
-            if(bankrupter == null) throw new NullPointerException("Bankrupter is null");
-
-            if(bankrupter instanceof Banker) {
-                for (Property p : bankrupted.getProperties()) {
-                    controller.handleAuction(p);
-                }
-            }
-            
-            else {
-                for(Property p : bankrupted.getProperties()) {
-                    while(p.developed()) p.sellDevelopment();
-                    bankrupter.addProperty(p);
-                    //If property is mortgaged give option to pay it off
-                    if(p.isMortgaged()) {
-                        controller.handleMortgagedPurchase((Player) bankrupter, p); 
-                    }    
-                }  
-            }
-            
-            bankrupted.pay(bankrupter, bankrupted.getBalance()); 
-        }
-    }  
-
-    /**
-     * Pays a mortgage balance using given player and property
-     */
-    void payMortgage(Player player, Property property) {
-        player.pay(Banker.getInstance(), (int) Math.ceil(property.getMortgageValue() * 1.1));
-        property.unMortgage();   
-    }
-
-    /**
-     * Pays owed interest on amortgaged property
-     */
-    void payMortgageIntrest(Player player, Property property) {
-        player.pay(Banker.getInstance(), (int) Math.ceil(property.getMortgageValue() * 0.1));
     }
 }

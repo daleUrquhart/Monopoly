@@ -1,8 +1,8 @@
 package com.monopoly.events;
 
-import com.monopoly.Banker;
 import com.monopoly.GameController;
-import com.monopoly.Player;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Player;
 
 public final class PaymentPerDevelopmentEvent extends GameEvent {
     private final int costPerHouse;

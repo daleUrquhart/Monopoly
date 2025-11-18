@@ -3,6 +3,7 @@ package com.monopoly;
 import java.util.List;
 
 import com.monopoly.boardspaces.Property;
+import com.monopoly.entities.Player;
 
 /**
  * Auction class for handling auction flow

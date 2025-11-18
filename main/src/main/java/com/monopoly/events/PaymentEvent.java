@@ -1,10 +1,10 @@
 package com.monopoly.events;
 
-import com.monopoly.Entity;
-import com.monopoly.Game;
 import com.monopoly.GameController;
 import com.monopoly.MessagePane;
-import com.monopoly.Player;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Entity;
+import com.monopoly.entities.Player;
 
 public class PaymentEvent extends GameEvent {
     private final Entity recipient;
@@ -22,7 +22,6 @@ public class PaymentEvent extends GameEvent {
     }
 
     private void tryPayment(GameController controller) {
-        Game game = controller.getModel(); 
         MessagePane mp = controller.getView().getMessagePane();
 
         if(sender instanceof Player) {
@@ -40,10 +39,9 @@ public class PaymentEvent extends GameEvent {
             } 
             else {
                 // bankrupt
-                game.bankruptPlayer((Player) sender, recipient, controller); 
-                controller.handleWinner();
+                controller.handleBankruptcy(recipient, (Player)  sender);
             }
         }
-        
+        else Banker.getInstance().pay(recipient, amount);
     }
 }

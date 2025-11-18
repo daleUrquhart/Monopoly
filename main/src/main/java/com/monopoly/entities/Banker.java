@@ -4,7 +4,7 @@
  * @since 2024-10-20
  */
 
- package com.monopoly;
+ package com.monopoly.entities;
 
  /**
   * Banker object that follows the Singleton pattern to ensure only one instance exists.

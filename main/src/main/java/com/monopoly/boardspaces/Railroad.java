@@ -4,8 +4,8 @@
 
 package com.monopoly.boardspaces;
 
-import com.monopoly.Banker;
-import com.monopoly.Player;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Player;
 
 /**
  * Railroad class

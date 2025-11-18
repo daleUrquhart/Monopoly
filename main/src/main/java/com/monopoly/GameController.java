@@ -9,10 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.monopoly.boardspaces.BoardSpace;
 import com.monopoly.boardspaces.Go;
-import com.monopoly.boardspaces.Jail;
-import com.monopoly.boardspaces.Property; 
+import com.monopoly.boardspaces.Property;
+import com.monopoly.entities.Entity;
+import com.monopoly.entities.Player;
+import com.monopoly.events.AuctionEvent;
+import com.monopoly.events.CompositeEvent;
+import com.monopoly.events.JailTurnEvent;
+import com.monopoly.events.MessageEvent;
+import com.monopoly.events.RollEvent;
+
+//import com.monopoly.events.PaymentEvent; 
 
 /**
  * Master class connecting Game and GameView tasks
@@ -25,7 +32,7 @@ public class GameController {
     /**
      * Manages the game instance
      */
-    private final Game game;
+    private final GameModel game;
 
     /**
      * Manages the viewer instance
@@ -35,7 +42,7 @@ public class GameController {
     /*
      * 
      */
-    MessagePane mp;
+    private final MessagePane mp;
 
     /**
      * 
@@ -53,7 +60,7 @@ public class GameController {
      * @param game Game instance
      * @param view Viewer instance
      */
-    GameController(Game game, GameView view) {
+    GameController(GameModel game, GameView view) {
         this.game = game;
         this.view = view;
         this.mp = view.getMessagePane();
@@ -77,7 +84,7 @@ public class GameController {
         view.getDicePane().setOnMouseClicked(e -> {
             if(rollEnabled) {
                 disableRoll();
-                handleRoll();
+                new RollEvent().execute(this);
             } else System.out.println("Attemped roll while dice disabled");
         });  
  
@@ -87,7 +94,7 @@ public class GameController {
         view.getJailPane().setOnMouseClicked(e -> {
             if(rollEnabled) {
                 disableRoll();
-                startJailTurn();
+                new JailTurnEvent().execute(this);
             } else System.out.println("Attemped click while bars disabled");
         });  
 
@@ -107,81 +114,173 @@ public class GameController {
         });
     }  
 
-    /**
-     * Enabled rolling
-     */
-    void enableRoll() {
-        rollEnabled = true;
+    // Getters
+    public GameView getView() {return view;} 
+    public GameModel getModel() {return game;}
+
+    // Roll controllers
+    public void enableRoll() { rollEnabled = true; } 
+    void disableRoll() { rollEnabled = false; } 
+
+    void processNextTurn() {
+        // Assign next player
+        game.advanceTurn();  
+        view.hidePrompt();
+
+        /* 
+        If next player is in jail, replace dice with jail bars.
+        Once bars are clicked jail turn is handled.
+        */
+        if(game.getCurrentPlayer().inJail()) view.showJail(); 
+        /*
+        If player is not in jail, show dice.
+        Once dice are clicked, roll is made and new tile is processed
+        */
+        else view.showDice();
+    }
+
+    public void showRollResults() {
+        mp.clearMessages();
+        Player current = game.getCurrentPlayer();
+        RollResult res = game.rollDice(); 
+
+        CompositeEvent event = new CompositeEvent();
+        event.add(new MessageEvent("\nYou rolled a "+res.getRoll()+" and landed on "+res.getSpace().getName()));   
+
+        // Handle Go passing
+        if(res.passedGo()) event.add(Go.getInstance().onLand(current, game));
+
+        // Handle Doubles logic 
+        switch (res.getDoublesOutcome()) {
+            case -1:
+                event.add(new MessageEvent("\nYou rolled doubles, you get to roll again after your turn! "));
+                break;
+            case 1:
+                event.add(new MessageEvent("\nThat was your third doubles, go to jail! "));
+        }
+
+        event.add(current.getLocation().onLand(current, game));
+        
+        event.execute(this);
+        mp.displayCurrent(current, this);
+
+        enableRoll();     
+        processNextTurn();
     }
 
     /**
-     * Disables rolling
+     * Handles the turn of landing on an unwoned property
      */
-    void disableRoll() {
-        rollEnabled = false;
-    }
+    public void handleUnownedProperty() {  
 
+        Player current = game.getCurrentPlayer();
+        Property property = (Property) current.getLocation();
 
-    void handleAuction(Property property) {
-        List<Player> bidders = game.getPlayers(); 
-        Auction auction = new Auction(property, bidders);
-        startAuction(auction, 0);
-    }
-
-    /**
-     * Handles an auctoin action selection from the current player
-     */
-    void startAuction(Auction auction, int playerIndex) {
-        Player current = auction.getBidders().get(playerIndex); 
-
-        mp.getBoolInput( 
-            current.getName() + ", bid on " + auction.getProperty().getName() + "?\n"+
-            "Current bid is $" + auction.getHighestBid(),
-            wantsToBid -> {
-                if (wantsToBid) {
-                    mp.getIntInput(
-                        "Enter Bid",
-                        "Bid higher than current $" + auction.getHighestBid(),
-                        "Your balance: $" + current.getBalance(),
-                        auction.getHighestBid(),
-                        current.getBalance(),
-                        bid -> {
-                            auction.placeBid(current, bid);
-                            nextBidder(auction, playerIndex + 1);
+        // If player's networth exceeds property price show option to buy
+        if(current.getNetWorth() >= property.getPrice()) { 
+            mp.getBoolInput("\n"+property.getName()+" is not owned yet." +" Would you like to buy it?",
+                    result -> {
+                        // player chose to buy with sufficent cash
+                        if(result) property.sellTo((Entity) current, property.getPrice()).execute(this);
+                        // Player chose not to buy, property goes to auction
+                        else {
+                            mp.showMessage("\nYou chose not to buy this property, and it will be going up for auction. ");
+                            new AuctionEvent(property, game.getPlayers()).execute(this);
                         }
-                    );
-                } else {
-                    nextBidder(auction, playerIndex + 1);
-                }
-            }
+                        mp.displayCurrent(current, this);
+                    }
+            );
+        } 
+
+        // The player can not afford the property, goes to auction
+        else {
+            mp.showMessage("\nYou can not afford this property, and it will be going up for auction. ");
+            new AuctionEvent(property, game.getPlayers()).execute(this);
+        }
+    }
+        
+    public void promptJailOptions(boolean canPay, boolean hasCard) {
+        mp.clear(); 
+        List<String> options = new ArrayList<>();
+
+        options.add("Try for Doubles");
+        if (canPay) options.add("Pay Bail");
+        if (hasCard) options.add("Use Card");
+
+        mp.getChoiceInput(
+            "You are in jail. Choose an option:",
+            options,
+            choice -> handleJailChoice(choice)
         );
     }
 
+    private void handleJailChoice(String choice) { 
+        JailOutcome result = game.processJailChoice(JailChoice.fromString(choice));
+        mp.showMessage(result.toString()); 
+        enableRoll();
+        processNextTurn();
+    }
+
+    // UI updates regarding result of a jail turn
+    public void showNoDoubles() {view.getMessagePane().showMessage("You failed to roll doubles ("+(getModel().getCurrentPlayer().getJailedTurns()+1)+"/3");}
+    public void showDoubles() {view.getMessagePane().showMessage("You rolled doubles and are freed from jail");}
+    public void showUsedJailCard() { view.getMessagePane().showMessage("Card used"); }
+    public void showAutoPaidBail() { view.getMessagePane().showMessage("Bail paid"); }
+    public void showAssetLiquidation() {view.getMessagePane().showMessage("You must liquidate assets in order to pay bail");}
+
     /**
-     * Handle next bidder 
+     * Handles bankruptcy controlling 
      */
-    void nextBidder(Auction auction, int nextIndex) {
-        if (nextIndex >= auction.getBidders().size()) {
-            concludeAuction(auction);
-        } else {
-            startAuction(auction, nextIndex);
+    public void handleBankruptcy(Entity bankrupter, Player bankrupted) {
+
+        BankruptResult res = game.processBankruptcy(bankrupted, bankrupter);
+
+        // If only one player left, declare teh winner
+        if (res.getPlayersRemaining() == 1) {
+            handleWinner();
+            return;
         }
+
+        // BANK bankrupts, auction all properties
+        if (res.isAllAuctioned()) {
+            res.getAuctionList().execute(this);
+            return;
+        }
+
+        // PLAYER bankrupts, transfer properties and handle mortgage choices
+        for (Property p : res.getMortgagedNeedingDecision()) {
+            handleMortgagedPurchase((Player) bankrupter, p, ()->{});
+        }
+        res.transferred.execute(this);
     }
 
     /**
-     * End of auction
+     * Handles game end state
+     * Just deletes dice so nobody can go anymore to gracefully 'end game'
      */
-    void concludeAuction(Auction auction) {
-        Player winner = auction.getHighestBidder();
-        if (winner != null) {
-            view.getMessagePane().showMessage(
-                winner.getName() + " wins " + auction.getProperty().getName() +" for $" + auction.getHighestBid());
-            buy(winner, Banker.getInstance(), auction.getProperty(), auction.getHighestBid(), game, view.getMessagePane());
-            mp.displayCurrent(winner, this);
-        } else {
-            view.getMessagePane().showMessage("No one bid. Property remains unsold.");
-        }
-        enableRoll();
+    public void handleWinner() { 
+        mp.clear(); 
+        mp.showMessage(game.getCurrentPlayer().getName() + " wins the game!");
+        mp.displayCurrent(game.getCurrentPlayer(), this);
+        view.deletePrompts();
+    }
+
+    /**
+     * Handles the purchasing of a mortgaged property. 
+     * Returns the payment event due
+     */
+    void handleMortgagedPurchase(Player buyer, Property p, Runnable onComplete) {
+        mp.getBoolInput(
+            p.getName()+" is mortgaged. Unmortgage now or pay interest?",
+            choice -> {
+                if (choice) {
+                    game.payMortgage(buyer, p).execute(this);
+                } else {
+                    game.payMortgageIntrest(buyer, p).execute(this);
+                }
+                onComplete.run();
+            }
+        );
     }
 
 
@@ -220,7 +319,7 @@ public class GameController {
                         accepted -> {
                             if (accepted) {
                                 if (buyer.canAfford(askingPrice)) {
-                                    buy(buyer, seller, property, askingPrice, game, mp);
+                                    buy(buyer, seller, property, askingPrice);
                                     mp.showMessage(
                                         buyer.getName() + " purchased " + property.getName() +
                                         " from " + seller.getName() + " for $" + askingPrice + "."
@@ -286,306 +385,20 @@ public class GameController {
             }
         );
     }  
-
-    void processNextTurn() {
-        // Assign next player
-        game.advanceTurn();  
-        view.hidePrompt();
-
-        /* 
-        If next player is in jail, replace dice with jail bars.
-        Once bars are clicked jail turn is handled.
-        */
-        if(game.getCurrentPlayer().inJail()) view.showJail(); 
-        /*
-        If player is not in jail, show dice.
-        Once dice are clicked, roll is made and new tile is processed
-        */
-        else view.showDice();
-    }
-
-    /**
-     * Handles a roll of the dice
-     */
-    void handleRoll() {     
-        Player current = game.getCurrentPlayer();
-        
-        mp.clear();
-        mp.displayCurrent(current, this);
-        disableRoll(); 
-
-        // Make roll and assign the new location
-        int roll = game.getDice().roll(current);  
-        int newSpaceID = roll + current.getLocation().getId(); 
-
-        // Passed Go
-        if(game.passedGo(newSpaceID)) Go.getInstance().onLand(current, game).execute(this); 
-
-        // Assign new location
-        game.movePlayerTo(newSpaceID);
-        BoardSpace newSpace = current.getLocation();
-        mp.showMessage("\nYou rolled a "+roll+" and landed on "+newSpace.getName());   
-
-        // Handle Doubles logic 
-        switch (game.getDoublesOutcome()) {
-            case -1:
-                mp.showMessage("\nYou rolled doubles, you get to roll again after your turn! ");
-                break; 
-            case 1:
-                // Third doubles in a row, add current to jail and end the turn
-                mp.showMessage("\nThat was your third doubles, go to jail! ");
-                return; 
-        }
-
-        // Handle the logic for landing on the new location 
-        if(newSpace instanceof Property) {
-            handleProperty();
-            
-        } else {
-            handleSpecialSquare();
-        } 
-    } 
-
-    void handleProperty() {
-        if(((Property) game.getCurrentPlayer().getLocation()).isOwned()) {
-            handleOwnedProperty();
-        } else {
-            handleUnownedProperty();
-        } 
-        processNextTurn(); 
-    }
-
-    /**
-     * Handles the turn of landing on an unwoned property
-     */
-    public void handleUnownedProperty() {  
-        Player current = game.getCurrentPlayer();
-        Property property = (Property) current.getLocation();
-
-        // If player's networth exceeds property price show option to buy
-        if(current.getNetWorth() >= property.getPrice()) { 
-            mp.getBoolInput("\n"+property.getName()+" is not owned yet." +" Would you like to buy it?",
-                    result -> {
-                        // player chose to buy with sufficent cash
-                        if(result && current.canAfford(property.getPrice())) {
-                            property.sellTo((Entity) current, property.getPrice());
-                            enableRoll();
-                            mp.displayCurrent(current, this);
-                        }
-                        // Player chose to buy property but hsa insufficent cash, leave option to sell assets and buy
-                        else if(result && !current.canAfford(property.getPrice())) {
-                            mp.clearMessages();
-                            mp.showAck("Submit Payment", () -> handleUnownedProperty());
-                            mp.showMessage("You can not afford this, liquidate assets to purchase");
-                        }
-                        // Player chose not to buy, property goes to auction
-                        else {
-                            mp.showMessage("\nYou chose not to buy this property, and it will be going up for auction. ");
-                            handleAuction(property);
-                        }
-                    }
-            );
-        } 
-
-        // The player can not afford the property, goes to auction
-        else {
-            mp.showMessage("\nYou can not afford this property, and it will be going up for auction. ");
-            handleAuction(property);
-        }
-    }
-
-    /**
-     * Handles game logic for landing on an owned property
-     */
-    public void handleOwnedProperty() { 
-        Player current = game.getCurrentPlayer();
-        Property property = (Property) current.getLocation();
-        Entity owner = property.getOwner(); 
-        int rent = property.getRent();
-
-        if (!owner.equals(current)) {
-            // Can not afford the rent with assets
-            if (current.getNetWorth() < rent) {
-                game.bankruptPlayer(current, owner, this);
-                mp.showMessage("\nBreaking! " + current.getName() + " bankrupted by: " + owner.getName() + "! "); 
-                mp.displayCurrent(current, this);
-                enableRoll();
-            }
-            // Can not afford the rent with current balance, pause game until enough assets are sold
-            else if(!current.canAfford(rent)) {
-                mp.clearMessages();
-                mp.showAck("Submit Payment", () -> handleOwnedProperty());
-                mp.showMessage("G\name may not proceed until "+property.getName()+"'s' rent is paid by "+current.getName()+". Liquidate assets to afford the $"+rent+" rent.");
-            }
-            // Can afford the rent
-            else {
-                property.chargeRent(current);
-                mp.showMessage("\n"+current.getName() + " landed on " + owner.getName() + "'s property\nThe rent owed to them is $" + rent + ".");
-                mp.displayCurrent(current, this);
-                enableRoll();
-            }
-        }
-        // If we own the property, do nothing
-        else {
-            mp.showMessage("\nYou are at " + property.getName() + ", and you own it already.");  
-            enableRoll();
-        }
-    } 
     
-    /**
-     * Handle the choice selected from the options in getValidJailChoices()
-     * @param choice Choice selected
-     * @return Whether or not they were freed by doubles
-     */
-    void startJailTurn() {  
-        Jail jail = Jail.getInstance();
-        Player current = game.getCurrentPlayer();
-        int bail = jail.getBail();
- 
-        mp.clear();
-        mp.displayCurrent(current, this);
-        disableRoll();
-
-        // --- Handle max jail turns ---
-        if (current.getJailedTurns() >= 3) { 
-            handleMaxJailTurns(view, this);  
-            processNextTurn(); 
-            return; 
-        }
-
-        // --- Build available options ---
-        List<String> options = new ArrayList<>();
-        options.add("Try for Doubles");
-        if (current.canAfford(bail)) {
-            options.add("Pay Bail ($" + bail + ")");
-        }
-        if (current.ownsJailCard()) {
-            options.add("Use Get Out of Jail Free Card");
-        }
-
-        // --- Prompt player for choice ---
-        mp.getChoiceInput( 
-            "You are in jail. Choose how to proceed:",
-            options,
-            choice -> { 
-                if (choice.startsWith("Pay Bail")) {
-                    game.processBail();
-                    mp.showMessage("You paid your bail and are free!");
-                    mp.displayCurrent(current, this);
-                } 
-                else if (choice.equals("Use Get Out of Jail Free Card")) {
-                    game.processJailCard();
-                    mp.showMessage("You used your Get Out of Jail Free card and are free!");
-                } 
-                else if (choice.equals("Try for Doubles")) {
-                    Boolean outcome = game.processDoubles();
-                    mp.showMessage("You rolled a " + game.getDice().getRoll() + "!");
-                    if(outcome) mp.showMessage("You rolled doubles and are free!");
-                    else {
-                        current.incrementJailTurns();
-                        mp.showMessage("No doubles. You remain in jail (" + current.getJailedTurns() + "/3)."); 
-                    }
-                } 
-                enableRoll(); 
-            }
-        );
-
-        processNextTurn(); 
-    }
-    
-    /**
-     * Handles the event of maximum jail turns reached
-     * If they can use a jail card sue it, else pay bail, if cant afford liquidate assets, if insufficent assets bankrupt
-     */
-    void handleMaxJailTurns(GameView view, GameController controller) { 
-        Player current = game.getCurrentPlayer();
-        Jail jail = Jail.getInstance();
-        int bail = jail.getBail();
- 
-        // If Player have a jail card, use it for them
-        if (current.ownsJailCard()) {
-            game.processJailCard();
-            mp.showMessage("Jailcard utilized, you are free from jail");
-        } 
-        // If Player can afford bail fee, charge it automatically
-        else if (current.canAfford(bail)) {
-            game.processBail();
-            mp.showMessage(current.getName() + " failed to roll doubles after 3 turns and was charged $" + bail + " bail.");
-            enableRoll();
-        } 
-        // If player has the net worht to pay for bail, pause game until they pay the bail
-        else if (current.getNetWorth() >= bail) { 
-            mp.clearMessages(); 
-            mp.showAck("Submit Payment", () -> handleMaxJailTurns(view, controller));
-            mp.showMessage("Game may not proceed until bail is paid by "+current.getName()+". Liquidate assets to afford the "+bail+" bail.");
-        } else {
-            mp.showMessage(current.getName() + " cannot afford bail and has gone bankrupt!");
-            game.bankruptPlayer(current, Banker.getInstance(), controller);
-            enableRoll();
-        }
-    } 
-
-    /**
-     * Handles game logic for landing on any of the special squares
-     */
-    void handleSpecialSquare() {  
-        Player current = game.getCurrentPlayer();
-        BoardSpace location = current.getLocation();   
-
-        location.onLand(current, game).execute(this);
-        
-        mp.displayCurrent(current, this);
-        enableRoll();     
-        processNextTurn(); 
-    } 
-
-    /**
-     * Gets the GameView
-     */
-    public GameView getView() {return view;}
-
-    /**
-     * Gets teh GameController
-     */
-    public Game getModel() {return game;}
-
-    /**
-     * Handles game end state
-     * Just deletes dice so nobody can go anymore to gracefully 'end game'
-     */
-    public void handleWinner() { 
-        mp.clear(); 
-        mp.showMessage(game.getCurrentPlayer().getName() + " wins the game!");
-        mp.displayCurrent(game.getCurrentPlayer(), this);
-        view.deletePrompts();
-    }
-
-    /**
-     * Handles the purchasing of a mortgaged property
-     */
-    void handleMortgagedPurchase(Player bankrupter, Property p) { 
-        mp.getBoolInput(p.toString()+" is mortgaged. Would you like to unmortgage it now, for "+(int) ((double) p.getMortgageValue() * 1.1)+", or wait until later and only pay the current intrest owing of "+(int) ((double) p.getMortgageValue() * 0.1)+".",
-            (result) -> {
-                if(result) {
-                    game.payMortgage(bankrupter, p);
-                } else {
-                    mp.showMessage("Property remains mortgaged, intrest only payment made. ");
-                    game.payMortgageIntrest(bankrupter, p);
-                }
-            }
-        ); 
-    }
-
     /**
      * Handles the purchase of a new proerty for the plaeyr bought by auction, or private sale
     * @param newProperty the property to buy
     * @param bid the amount the player bid for the property  
     */
-    void buy(Player buyer, Entity seller, Property p, int bid, Game game, MessagePane mp) { 
-        //This is all only unmortgaging or paying intrest
-        if(p.isMortgaged()) handleMortgagedPurchase(buyer, p);
+    public void buy(Player buyer, Entity seller, Property p, int bid) {
+        if (!p.isMortgaged()) {
+            p.sellTo(buyer, bid).execute(this);
+            return;
+        }
 
-        //Bid transactioning
-        p.sellTo(buyer, bid); 
+        handleMortgagedPurchase(buyer, p, () -> {
+            p.sellTo(buyer, bid).execute(this);
+        });
     }
 }

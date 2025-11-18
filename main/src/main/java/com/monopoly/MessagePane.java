@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.monopoly.boardspaces.Property;
+import com.monopoly.entities.Player;
+import com.monopoly.events.AuctionEvent;
 
 import javafx.geometry.Pos; 
 import javafx.scene.control.Button;
@@ -106,7 +108,7 @@ public class MessagePane extends GridPane {
      * @param context Context text explaining the choice
      * @param callback Code to execute with the result (true for yes, false for no)
      */
-    void getIntInput(String title, String header, String context, int min, int max, Consumer<Integer> callback) {
+    public void getIntInput(String title, String header, String context, int min, int max, Consumer<Integer> callback) {
         // Title + context display
         Label question = new Label(title + "\n" + header + "\n" + context);
         question.setWrapText(true);
@@ -165,7 +167,7 @@ public class MessagePane extends GridPane {
      * @param context Context text explaining the choice
      * @param callback Code to execute with the result (true for yes, false for no)
      */
-    void getBoolInput(String context, Consumer<Boolean> callback) {
+    public void getBoolInput(String context, Consumer<Boolean> callback) {
         // Create question label
         Label question = new Label(context);
         question.setWrapText(true);
@@ -227,7 +229,7 @@ public class MessagePane extends GridPane {
      * Displays the information on DispPane of main player below any messages pertaining to current turn
      * @param p Current player
      */
-    void displayCurrent(Player current, GameController controller) { 
+    public void displayCurrent(Player current, GameController controller) { 
         clearCurrentPlayerDisplay();
         Label data = new Label(current.getName() + "'s turn\nBalance:" + current.getBalance() + "\n"); 
         HBox pBox;
@@ -273,7 +275,10 @@ public class MessagePane extends GridPane {
                 
                 // The next two are handled with controller as it requires additional inputs
                 auctionB = new Button("Auction");
-                auctionB.setOnMouseClicked(e -> {controller.handleAuction(p); displayCurrent(current, controller);}); 
+                auctionB.setOnMouseClicked(e -> {
+                    new AuctionEvent(p, controller.getModel().getPlayers()).execute(controller);
+                    displayCurrent(current, controller);
+                }); 
 
                 privateSaleB = new Button("Private Sale");
                 privateSaleB.setOnMouseClicked(e -> {controller.handlePrivateSale(p); displayCurrent(current, controller);});

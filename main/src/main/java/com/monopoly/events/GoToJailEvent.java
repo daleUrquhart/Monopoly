@@ -1,7 +1,7 @@
 package com.monopoly.events;
 
 import com.monopoly.GameController;
-import com.monopoly.Player;
+import com.monopoly.entities.Player;
 
 public final class GoToJailEvent extends GameEvent {
 

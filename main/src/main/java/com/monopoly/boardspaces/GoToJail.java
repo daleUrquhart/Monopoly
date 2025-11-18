@@ -4,8 +4,8 @@
 
 package com.monopoly.boardspaces;
 
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Player;
 import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.GoToJailEvent;
@@ -36,7 +36,7 @@ public final class GoToJail extends BoardSpace {
         return INSTANCE;
     }
     
-    @Override public GameEvent onLand(Player current, Game game) {
+    @Override public GameEvent onLand(Player current, GameModel game) {
         CompositeEvent e = new CompositeEvent();
         e.add(new GoToJailEvent(current));
         e.add(new MessageEvent("Go directly to Jail. Do not pass Go, do not collect $200"));

@@ -4,11 +4,12 @@
  */
 package com.monopoly;
 
-import com.monopoly.boardspaces.Go;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.monopoly.boardspaces.Go;
+import com.monopoly.entities.Player;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -216,7 +217,7 @@ public class PlayerBuilder {
      * Sends player data to game
      * @param game Game refrence
      */
-    void loadPlayersToGame(Game game) {
+    void loadPlayersToGame(GameModel game) {
         game.setPlayerCount(playerCount);
 
         for(int i = 0; i < playerCount; i++) game.addPlayer(new Player(takenNames.get(i), Go.getInstance(), takenPieces.get(i)));

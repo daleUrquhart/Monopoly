@@ -5,7 +5,7 @@
  * @since 2024-10-18
  */
 
-package com.monopoly;
+package com.monopoly.entities;
 
 import com.monopoly.boardspaces.BoardSpace;
 import com.monopoly.boardspaces.Go;
@@ -72,7 +72,7 @@ public final class Player extends Entity {
      * Parametrized constructor for Player object
      * @param name Player's name
      */
-    Player(String name, Go location, ImageView piece) {
+    public Player(String name, Go location, ImageView piece) {
         super(name); 
         this.piece = piece;
         ID = ID_COUNTER++;
@@ -88,7 +88,7 @@ public final class Player extends Entity {
      * Checks double count for turn
      * @return int double count for turn
      */
-    int getDoubleCount() {
+    public int getDoubleCount() {
         return doubleCount;
     }
     
@@ -151,7 +151,7 @@ public final class Player extends Entity {
      * Gets number of get out of jail free cards
      * @return number of get out of jail free cards
      */
-    int getJailCardNum() {
+    protected int getJailCardNum() {
         return jailCardNum;
     } 
 
@@ -159,7 +159,7 @@ public final class Player extends Entity {
      * Setter method for player's location by BoardSpace
      * @param newLoc New location of player
      */
-    void setInitialLocation(BoardSpace location) { 
+    protected void setInitialLocation(BoardSpace location) { 
         this.location = location;
         location.addOccupant(this);
     } 
@@ -167,35 +167,35 @@ public final class Player extends Entity {
     /**
      * Moves the player to a new location
      */
-    void setLocation(BoardSpace location) {
+    public void setLocation(BoardSpace location) {
         this.location = location;
     }
 
     /**
      * Flips current player value
      */
-    void flipCurrent() {
+    public void flipCurrent() {
         current = !current; 
     }
 
     /**
      * Resets the double count for the turn
      */
-    void resetDoubleCount() {
+    public void resetDoubleCount() {
         doubleCount = 0;
     }
 
     /**
      * Increments double count
      */
-    void incrementDoubleCount() {
+    public void incrementDoubleCount() {
         doubleCount += 1;
     }  
 
     /**
      * Sets the players last roll
      */
-    void setRoll(int roll) {
+    public void setRoll(int roll) {
         this.roll = roll;
     }
 
@@ -204,7 +204,7 @@ public final class Player extends Entity {
      * @param property the property to be sold
      * @return true for if the action was succesful
      */
-    void sell(Property property) { 
+    public void sell(Property property) { 
         Banker banker = Banker.getInstance();
         removeProperty(property);
         property.setOwner(banker);
@@ -215,14 +215,14 @@ public final class Player extends Entity {
      * Whether or not the player has a 'Get out of jail free card'
      * @return true for if they do own a 'Get out of jail free card'
      */
-    boolean ownsJailCard() {
+    public boolean ownsJailCard() {
         return jailCardNum != 0;
     }
 
     /**
      * Use a 'Get out of jail free card'
      */
-    void decrementJailCard() {
+    public void decrementJailCard() {
         jailCardNum -= 1; 
     }
 
@@ -244,7 +244,7 @@ public final class Player extends Entity {
     /**
      * Flips the player's jail status
      */
-    void flipJailed() {
+    public void flipJailed() {
         if(inJail()) {resetJailTurns();}
         jail = !jail;
     }
@@ -252,21 +252,21 @@ public final class Player extends Entity {
     /**
      * Resets teh turns spent in jail
      */
-    void resetJailTurns() {
+    public void resetJailTurns() {
         jailTurns = 0;
     }
 
     /**
      * gets the amount of turns the player has spent in jail
      */
-    int getJailedTurns() {
+    public int getJailedTurns() {
         return jailTurns;
     }
 
     /**
      * Increments the amount of turns spent in jail
      */
-    void incrementJailTurns() {
+    public void incrementJailTurns() {
         jailTurns += 1;
     }  
  

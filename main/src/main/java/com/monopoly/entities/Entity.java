@@ -4,7 +4,7 @@
  * @since 2024-10-20
  */
 
-package com.monopoly;
+package com.monopoly.entities;
 
 import java.util.ArrayList;
 
@@ -43,7 +43,7 @@ public class Entity {
     /**
      * Player super constructor
     */
-    Entity(String name) {
+    public Entity(String name) {
         this.name = name;
         this.balance = name.equals("Banker") ? Integer.MAX_VALUE : STARTING_BAL;
         netWorth = balance;
@@ -62,7 +62,7 @@ public class Entity {
      * Gets balance
     * @return balance
     */
-    int getBalance() {
+    public int getBalance() {
         return balance;
     }
 

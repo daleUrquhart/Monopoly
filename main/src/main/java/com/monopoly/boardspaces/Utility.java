@@ -4,8 +4,8 @@
 
 package com.monopoly.boardspaces;
 
-import com.monopoly.Entity;
-import com.monopoly.Player;
+import com.monopoly.entities.Entity;
+import com.monopoly.entities.Player;
 
 /**
  * Utility class

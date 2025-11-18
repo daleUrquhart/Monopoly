@@ -1,10 +1,10 @@
 package com.monopoly.events;
 
-import com.monopoly.Banker;
-import com.monopoly.Game;
 import com.monopoly.GameController;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
 import com.monopoly.boardspaces.Railroad;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Player;
 
 /**
  * Moves the player to the nearest Railroad and handles special Chance/CC rules:
@@ -14,7 +14,7 @@ import com.monopoly.boardspaces.Railroad;
 public class MoveToNearestRREvent extends GameEvent { 
 
     @Override public void execute(GameController controller) {
-        Game game = controller.getModel();
+        GameModel game = controller.getModel();
         Player player = game.getCurrentPlayer();
         int currentId = player.getLocation().getId();
 
@@ -24,18 +24,16 @@ public class MoveToNearestRREvent extends GameEvent {
 
         game.movePlayerTo(nearestId);
         Railroad rr = (Railroad) game.getSpace(nearestId);
-        Banker banker = Banker.getInstance();
 
-        if (rr.getOwner().equals(banker)) {
-            controller.handleUnownedProperty();
-        } else if (!rr.getOwner().equals(player)) {
+        // This could instead be PaymentEvent(..., ((RailRoad) property).getChanceRent()) or smth but wtvs
+        if (!(rr.getOwner().equals(player) || rr.getOwner().equals(Banker.getInstance()))) {
             int rent = rr.getRent() * 2; 
             MessageEvent messageEvent = new MessageEvent("$" + rent + " rent owed to " + rr.getOwner().getName() + " for " + rr.getName());
             PaymentEvent paymentEvent = new PaymentEvent(player, rr.getOwner(), rent);
             messageEvent.execute(controller);
             paymentEvent.execute(controller); 
         } else {
-            controller.handleOwnedProperty();
+            player.getLocation().onLand(player, controller.getModel()).execute(controller);
         }
     }
 }

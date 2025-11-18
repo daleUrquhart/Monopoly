@@ -21,6 +21,7 @@ module com.monopoly {
     requires transitive javafx.graphics;
     
     opens com.monopoly to javafx.fxml;
+    exports com.monopoly.entities;
     exports com.monopoly.boardspaces;
     exports com.monopoly.events;
     exports com.monopoly;

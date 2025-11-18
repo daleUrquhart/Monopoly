@@ -7,9 +7,9 @@
 
 package com.monopoly.boardspaces;
 
-import com.monopoly.Banker;
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Banker;
+import com.monopoly.entities.Player;
 import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
@@ -48,7 +48,7 @@ public final class Go extends BoardSpace {
     /**
      * Handles events for landing on square
      */
-    @Override public GameEvent onLand(Player current, Game game) {
+    @Override public GameEvent onLand(Player current, GameModel game) {
         CompositeEvent e = new CompositeEvent();
         e.add(new MessageEvent("Congratulations, " + current.getName() + "! You made it to Go, here is $"+getReward()+"!"));
         e.add(new PaymentEvent(Banker.getInstance(), current, getReward()));

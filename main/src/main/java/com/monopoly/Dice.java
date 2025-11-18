@@ -9,6 +9,8 @@ package com.monopoly;
 
 import java.util.Random;
 
+import com.monopoly.entities.Player;
+
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;

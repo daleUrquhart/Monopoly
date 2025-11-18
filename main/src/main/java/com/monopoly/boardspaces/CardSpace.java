@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.Random;
 
 import com.monopoly.Card;
-import com.monopoly.Game;
-import com.monopoly.Player;
+import com.monopoly.GameModel;
+import com.monopoly.entities.Player;
 import com.monopoly.events.CardEventManager;
 import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
+import com.monopoly.events.UpdatePlayerEvent;
 
 /**
  * Represents either a Community Chest or Chance Space
@@ -29,11 +30,14 @@ public class CardSpace extends BoardSpace {
         this.chance = deck.get(0).isChance();
     }
 
-    @Override public GameEvent onLand(Player current, Game game) {
+    @Override public GameEvent onLand(Player current, GameModel game) {
         Card card = drawDeck(); 
         CompositeEvent e = new CompositeEvent();
         e.add(new MessageEvent("Welcome to " + getName() + "! Your card draw is:\n" + card.getName()));
-        e.add(CardEventManager.createCardEvent(card, current, game));
+        GameEvent cardEvent = CardEventManager.createCardEvent(card, current, game);
+        UpdatePlayerEvent updateEvent = new UpdatePlayerEvent(current);
+        e.add(cardEvent);
+        e.add(updateEvent);
         return e;
     }
 
