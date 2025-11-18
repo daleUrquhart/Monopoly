@@ -22,12 +22,16 @@ public class PaymentEvent extends GameEvent {
     }
 
     private void tryPayment(GameController controller) {
+        // Maybe wrap this in a getBoolInput (if allowed, maybe have a forced payment event for ones that msut be paid)
+        // Maybe only call a payment event once networth is checked andd bankrupt event otherwise
+        // Anywho, not an issue for today
         MessagePane mp = controller.getView().getMessagePane();
 
         if(sender instanceof Player) {
             if (sender.canAfford(amount)) {
                 sender.pay(recipient, amount);
                 mp.showMessage("Paid $" + amount + " to " + recipient.getName());
+                controller.enableRoll();     
             } 
             else if (sender.getNetWorth() >= amount) {
                 // pause and wait for liquidation

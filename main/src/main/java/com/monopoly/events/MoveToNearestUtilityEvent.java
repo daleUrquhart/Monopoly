@@ -24,8 +24,8 @@ public final class MoveToNearestUtilityEvent extends GameEvent {
         Utility utility = (Utility) game.getSpace(targetId);
         
         if (!(utility.getOwner().equals(player) && utility.getOwner().equals(Banker.getInstance()))) {
-            int multiplier = 10; 
-            int rent = game.getDice().getRoll() * multiplier;
+            int roll = game.getDice().getRoll();
+            int rent = utility.getChanceRent(roll);
             MessageEvent messageEvent = new MessageEvent("\n$" + rent + " rent owed to " + utility.getOwner().getName() + " for " + utility.getName());
             PaymentEvent paymentEvent = new PaymentEvent(player, utility.getOwner(), rent);
             messageEvent.execute(controller);

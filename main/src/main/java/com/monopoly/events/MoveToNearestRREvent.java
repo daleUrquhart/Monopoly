@@ -25,9 +25,8 @@ public class MoveToNearestRREvent extends GameEvent {
         game.movePlayerTo(nearestId);
         Railroad rr = (Railroad) game.getSpace(nearestId);
 
-        // This could instead be PaymentEvent(..., ((RailRoad) property).getChanceRent()) or smth but wtvs
         if (!(rr.getOwner().equals(player) || rr.getOwner().equals(Banker.getInstance()))) {
-            int rent = rr.getRent() * 2; 
+            int rent = rr.getChanceRent();
             MessageEvent messageEvent = new MessageEvent("$" + rent + " rent owed to " + rr.getOwner().getName() + " for " + rr.getName());
             PaymentEvent paymentEvent = new PaymentEvent(player, rr.getOwner(), rent);
             messageEvent.execute(controller);

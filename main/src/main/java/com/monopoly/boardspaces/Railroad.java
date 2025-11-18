@@ -32,6 +32,8 @@ public final class Railroad extends Property{
         return (int) rent;
     }
 
+    public int getChanceRent() {return getRent()*2;}
+    
     /**
      * Charges rent to the player who lands on the property
      */

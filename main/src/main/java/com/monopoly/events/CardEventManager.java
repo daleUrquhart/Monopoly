@@ -17,8 +17,8 @@ public final class CardEventManager {
 
         // Credit or debit
         if (card.isCredit()) {
-            result.add(new MessageEvent("Card: " + card.getName() + " -> $" + card.getPayment()));
-            result.add(new PaymentEvent(player, banker, card.getPayment()));
+            if(card.getPayment() < 0) result.add(new PaymentEvent(banker, player, card.getPayment()));
+            else result.add(new PaymentEvent(player, banker, -card.getPayment()));
         }
 
         // Jail effects

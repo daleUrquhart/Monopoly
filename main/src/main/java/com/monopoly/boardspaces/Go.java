@@ -14,6 +14,7 @@ import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
 import com.monopoly.events.PaymentEvent;
+import com.monopoly.events.VoidEvent;
 
 /**
  * Go Space
@@ -52,6 +53,7 @@ public final class Go extends BoardSpace {
         CompositeEvent e = new CompositeEvent();
         e.add(new MessageEvent("Congratulations, " + current.getName() + "! You made it to Go, here is $"+getReward()+"!"));
         e.add(new PaymentEvent(Banker.getInstance(), current, getReward()));
+        e.add(new VoidEvent());
         return e;
     }
 

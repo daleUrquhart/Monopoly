@@ -164,7 +164,6 @@ public class GameController {
         event.execute(this);
         mp.displayCurrent(current, this);
 
-        enableRoll();     
         processNextTurn();
     }
 
@@ -172,7 +171,7 @@ public class GameController {
      * Handles the turn of landing on an unwoned property
      */
     public void handleUnownedProperty() {  
-
+        
         Player current = game.getCurrentPlayer();
         Property property = (Property) current.getLocation();
 

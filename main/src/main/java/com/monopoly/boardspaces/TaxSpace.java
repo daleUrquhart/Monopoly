@@ -11,6 +11,7 @@ import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
 import com.monopoly.events.PaymentEvent;
+import com.monopoly.events.VoidEvent;
 
 /**
  * Tax object
@@ -34,6 +35,7 @@ public final class TaxSpace extends BoardSpace {
         CompositeEvent e = new CompositeEvent();
         e.add(new MessageEvent("Uh oh! You have been charged "+getName()+"! You were charged $" + getTax() + "!"));
         e.add(new PaymentEvent(current, Banker.getInstance(), amount)); 
+        e.add(new VoidEvent());
         return e;
     }
  

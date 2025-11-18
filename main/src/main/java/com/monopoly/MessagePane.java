@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
@@ -231,61 +232,66 @@ public class MessagePane extends GridPane {
      */
     public void displayCurrent(Player current, GameController controller) { 
         clearCurrentPlayerDisplay();
-        Label data = new Label(current.getName() + "'s turn\nBalance:" + current.getBalance() + "\n"); 
+
+        Label data = new Label(current.getName() + "'s turn. Current balance: $" + current.getBalance() + "\n"); 
+        currentPlayerDisplay.getChildren().add(data);
+
+        VBox propertiesContainer = new VBox(5);
+        propertiesContainer.setAlignment(Pos.CENTER_LEFT);
+
         HBox pBox;
         Button buyDevelopmentBoxB, mortgageB, unMortgageB, auctionB, privateSaleB, sellB, sellDevelopmentB; 
 
-        currentPlayerDisplay.getChildren().addAll(data);
-        //display.getChildren().addAll(current.getPiece(), data); Try not adding piece to  view to see if it stays on board
-
-        // Lengthy button display logic (dont offer to mortage an already mortgaged property, etc.)
+        // Build property options
         for(Property p : current.getProperties()) { 
-            // Property HBox to be added to player
-            pBox = new HBox();
+            pBox = new HBox(5);
+            pBox.setAlignment(Pos.CENTER_LEFT);
             pBox.getChildren().add(new Label(p.toString())); 
 
-            // lengthy check for buying development
             if(current.ownsSetFor(p) && current.canAfford(p.getDevelopmentCost()) && !p.hasHotel() && !p.isMortgaged()) {
                 buyDevelopmentBoxB = new Button("Buy Development");
                 buyDevelopmentBoxB.setOnMouseClicked(e -> {p.buyDevelopment(); displayCurrent(current, controller);});
                 pBox.getChildren().add(buyDevelopmentBoxB);
             } 
- 
-            if(p.isMortgaged()) {                                     // Mortgaged, offer to unmortgage it
-                unMortgageB = new Button("Un Mortgage");
+
+            if(p.isMortgaged()) {
+                unMortgageB = new Button("Unmortgage");
                 unMortgageB.setOnMouseClicked(e -> {p.unMortgage(); displayCurrent(current, controller);});
                 pBox.getChildren().add(unMortgageB);
-            } else if(!p.developed()){                                // Not mortgaged, if no development offer to mortgage
-                mortgageB = new Button("Mortgage property");
+            } else if(!p.developed()) {
+                mortgageB = new Button("Mortgage");
                 mortgageB.setOnMouseClicked(e -> {p.mortgage(); displayCurrent(current, controller);});
                 pBox.getChildren().add(mortgageB);
-            } else {                                                  // Not mortgaged, has developemtn, offer to sell one
-                sellDevelopmentB = new Button("Sell development");
+            } else {
+                sellDevelopmentB = new Button("Sell Development");
                 sellDevelopmentB.setOnMouseClicked(e -> {p.sellDevelopment(); displayCurrent(current, controller);});
-
-                
-
-                pBox.getChildren().addAll(sellDevelopmentB); 
+                pBox.getChildren().add(sellDevelopmentB);
             }
 
-            // Cant have developments, can be mortgaged
             if(!p.developed()) {
                 sellB = new Button("Sell to Bank");
                 sellB.setOnMouseClicked(e -> {current.sell(p); displayCurrent(current, controller);}); 
                 
-                // The next two are handled with controller as it requires additional inputs
                 auctionB = new Button("Auction");
-                auctionB.setOnMouseClicked(e -> {
-                    new AuctionEvent(p, controller.getModel().getPlayers()).execute(controller);
-                    displayCurrent(current, controller);
-                }); 
+                auctionB.setOnMouseClicked(e -> {new AuctionEvent(p, controller.getModel().getPlayers()).execute(controller); displayCurrent(current, controller);}); 
 
                 privateSaleB = new Button("Private Sale");
                 privateSaleB.setOnMouseClicked(e -> {controller.handlePrivateSale(p); displayCurrent(current, controller);});
+
                 pBox.getChildren().addAll(sellB, auctionB, privateSaleB);
             }  
 
-            currentPlayerDisplay.getChildren().add(pBox);
-        }  
-    } 
+            propertiesContainer.getChildren().add(pBox);
+        }
+
+        // Wrap in ScrollPane if more than 10 properties
+        if(propertiesContainer.getChildren().size() > 10) {
+            ScrollPane scrollPane = new ScrollPane(propertiesContainer);
+            scrollPane.setFitToWidth(true);
+            scrollPane.setPrefHeight(300); 
+            currentPlayerDisplay.getChildren().add(scrollPane);
+        } else {
+            currentPlayerDisplay.getChildren().add(propertiesContainer);
+        }
+    }
 }

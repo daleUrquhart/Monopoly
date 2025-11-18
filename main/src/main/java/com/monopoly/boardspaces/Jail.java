@@ -4,8 +4,10 @@ import java.util.ArrayList;
 
 import com.monopoly.GameModel;
 import com.monopoly.entities.Player;
+import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.MessageEvent;
+import com.monopoly.events.VoidEvent;
 
 /**
  * Jail space
@@ -35,11 +37,14 @@ public class Jail extends BoardSpace{
         this.jailedPlayers = new ArrayList<>();
     }
     @Override public GameEvent onLand(Player current, GameModel game) {
+        CompositeEvent res = new CompositeEvent();
         String message;
         if(current.inJail()) message = "You are in jail.";
         else if (hasJailed()) message = "Welcome to the visitation center. Say hello to your friends. ";
         else message = "Welcome to the visitation center. Better stay on the right side of these bars...";
-        return new MessageEvent(message);
+        res.add(new MessageEvent(message));
+        res.add(new VoidEvent());
+        return res;
     }
 
     /**

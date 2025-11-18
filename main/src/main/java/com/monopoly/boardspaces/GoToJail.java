@@ -10,6 +10,7 @@ import com.monopoly.events.CompositeEvent;
 import com.monopoly.events.GameEvent;
 import com.monopoly.events.GoToJailEvent;
 import com.monopoly.events.MessageEvent;
+import com.monopoly.events.VoidEvent;
 
 /**
  * GoToJail class
@@ -40,6 +41,7 @@ public final class GoToJail extends BoardSpace {
         CompositeEvent e = new CompositeEvent();
         e.add(new GoToJailEvent(current));
         e.add(new MessageEvent("Go directly to Jail. Do not pass Go, do not collect $200"));
+        e.add(new VoidEvent());
         return e;
     }
 }

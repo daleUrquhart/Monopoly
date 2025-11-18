@@ -321,7 +321,7 @@ public class Card {
                 try {
                     Card card = new Card(
                             values[0],
-                            isCreditCheck(values),
+                            Integer.parseInt(values[17])==1,
                             Integer.parseInt(values[1]),
                             Boolean.parseBoolean(values[2]),
                             Boolean.parseBoolean(values[3]),
@@ -349,21 +349,7 @@ public class Card {
             }
         }
         return ccDeck;
-    }
-
-    private static Boolean isCreditCheck(String[] values) {
-        Boolean result = true;
-        if(Integer.parseInt(values[1]) != 0) {
-            for(int i = 2; i < 15; i++) {
-                if(!values[i].isEmpty()) { result = false; break; }
-            }
-        } else result = false;
-
-        if(result) {
-            result = values[15].isEmpty() && values[16].equals("Null");
-        }
-        return result;
-    }
+    } 
 
     /**
      * Loads all card data from a CSV file and returns a list of Card objects.
@@ -394,7 +380,7 @@ public class Card {
                 try {
                     Card card = new Card(
                             values[0],
-                            isCreditCheck(values),
+                            Integer.parseInt(values[17])==1,
                             Integer.parseInt(values[1]),
                             Boolean.parseBoolean(values[2]),
                             Boolean.parseBoolean(values[3]),

@@ -73,55 +73,28 @@ JavaFX
   - Video / GIF displays for specific logic flows?
   - Cover a breadth of scenarios, but dont clutter the readme
   - Also move these notes and organzie better in a BUGLOG.md
-
-### (Done) Properly structure in a MVC design 
-  - Addressed in decoupling and encapsulation efforts
-
-  - Structure
-    - So far I have just been coping with what I came back to after having made the hurried development a year ago
-  - Implment a MVC restructure once all logic is functioning i will jsut have to cut and paste so i will do the grand migration once all known concerns are addressed
-  - Hoping to structure it like the TEMS project 
-
-### (Done) Charging the wrong player in some instances
-  - Issue addressed in roll decoupling and event handling refactoring
-  - Something is off with turn balance display, havent traced yet to see what. Possibly performing payments on next player instead of current in some 
-    - TODO
-    - Deffinetly charging next player. processNextTurn() calls advanceTurn() but processNextTurn is called before payments are made in turn handling, this causes next player to make any payments handled in a showAck that results in a player.pay() (Ex: Pay bail)
-    - The pay bail case is especially fatal since it flips the jail status of next player leaving current in jail and sending next player to jail
-
-### (TODO) Implement property scrolling view once 10 are owned
-    - Display gets clutttered and breaks once several properties are squished into current plaeyr display
-
-### (Done) Landing on owned Utility and RR issues
-  - Issue addressed in event handler implementation
-
-  - Will likely be fixed after fully implementing the event handlers
-  - ChargeChanceRent in RR and Utility does not check for bankruptcy maybe make rent a game method and have a bool param for if its a chance rent because it also does not update mp correctly
-    - TODO
-  - Utility Rent Does not work
-    - TODO 
-
+ 
 ### (TODO) Address tech debt
   - Read over classes, ensure good class method javadocs
 
-### (Done) Bankruptcy is not efficently hadnled
-  - Decoupled bankruptcy logic and implemented result class to help organize logic
+### (TODO) Bankruptcy is not tested
+  - TODO, go through bankruptcy scenarios
 
-  -  TODO make pay return Bool (null for cant afford, but has the net worth) then Game method that called it will return bool when null and the controller will do a showAck when recieves false and prompt asssets to be sold off then recurse back into the controller method
+### (TODO) Payment refinement
+  - See notes in PaymentEvent.java
   
-  - credit and debit should also be made private and just pay the banker when required
-  - look at putting the showAck bankruptcy logic in a centralized place where all payments are processed through
-
-### (TODO) Proper migration to SPA MVC 
-  - Factor logic into the format of the TEMS application (see repo on my github) 
-
-### (TODO) Auction not working properly
-  - TODO
-
-### (TODO) Go To Jail is paying out Go
-  - TODO
+### (Done) Implement property scrolling view once 10 are owned plus bug fixes
+  - Seperated logic in special property chance rents a little
+  - Go to jail paying out go
+    - Solved by moving around how go is payed out
+  - Illegal rolls were getting through on unowned property and special squares.. 
+    - Solved by adding a EnableRollEvent that jsut enables rolling again for special squares
+  - Added a extra value to cards and removed isCredit()
+  - Fixed with updates confined to MessagePane
+  - Also addressed minor visual bugs
+  - Display gets clutttered and breaks once several properties are squished into current plaeyr display
   
-### (Done) Transition to event handlers for rest of project
+### (Done) Transition to event handlers for rest of project 
   - Right now, unowned properties go straight to auction if player has insufficent cash but sifficent net worth. It should ask if you want to buy and if insufficent cash do showAck sell assets and submit prompt and go back to buy or send to auction after submmit is clicked. This should be addressed during the implementation of UnownedPropertyEvent.
   - Property, Game, GameController
   - Process all payments through PaymentEvent

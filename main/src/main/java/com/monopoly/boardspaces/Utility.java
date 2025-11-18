@@ -26,13 +26,15 @@ public final class Utility extends Property{
     public int getRent(Player player) {
         int count = 0;
         for (Property p : getOwner().getProperties()) {
-            if (p instanceof Utility) {
-                count += 1;
-            }
+            if (p instanceof Utility) count++;
         }
         return player.getRoll() * (count == 1 ? 4 : 10);
     }
 
+    public int getChanceRent(int roll) { 
+        return roll*10;
+    }
+    
     /**
      * Charges rent to the player who lands on the property
      */

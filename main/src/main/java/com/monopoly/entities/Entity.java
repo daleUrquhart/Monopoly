@@ -38,7 +38,7 @@ public class Entity {
     /**
      * Starting balance of a player
      */
-    private final int STARTING_BAL = 1000;
+    private final int STARTING_BAL = 10000;
 
     /**
      * Player super constructor
